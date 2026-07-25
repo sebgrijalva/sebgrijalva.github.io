@@ -18,6 +18,7 @@
       <button id="clearBtn" aria-label="Clear toy">Clear</button>
       <button id="modeBtn" aria-label="Change mode">Builder</button>
       <button id="gravityBtn" aria-label="Toggle gravity">Gravity</button>
+      <button id="sceneBtn" aria-label="Change map">Map</button>
       <button id="installBtn" hidden aria-label="Install app">Install</button>
     </section>
 
@@ -31,6 +32,12 @@
       <button class="tool" data-tool="bumper" aria-label="Add bumpers">
         <span class="bumper-icon"></span><small>Bumper</small>
       </button>
+      <button class="tool" data-tool="spinner" aria-label="Add spinners">
+        <span class="spinner-icon"></span><small>Spinner</small>
+      </button>
+      <button class="tool" data-tool="portal" aria-label="Add portals">
+        <span class="portal-icon"></span><small>Portal</small>
+      </button>
       <button class="tool" data-tool="eraser" aria-label="Erase objects">
         <span class="eraser-icon"></span><small>Erase</small>
       </button>
@@ -39,7 +46,7 @@
     <dialog id="welcomeDialog">
       <form method="dialog">
         <h1>Marble Workshop</h1>
-        <p>Tap for marbles. Draw ramps. Add springy bumpers. Shake the phone gently to stir the world.</p>
+        <p>Tap for marbles. Draw ramps. Add bumpers, spinners, and portal pairs. Explore different maps and discover musical pads around the world.</p>
         <label>
           Play style
           <select id="profileSelect">
