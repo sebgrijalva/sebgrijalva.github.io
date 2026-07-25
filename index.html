@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <title>Family Toy Lab</title>
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=6" />
 </head>
 <body>
   <main id="app">
@@ -23,32 +23,19 @@
     </section>
 
     <section id="toolDock" class="glass" aria-label="Toy tools">
-      <button class="tool active" data-tool="marble" aria-label="Add marbles">
-        <span class="dot"></span><small>Marble</small>
-      </button>
-      <button class="tool" data-tool="ramp" aria-label="Draw ramps">
-        <span class="ramp-icon"></span><small>Ramp</small>
-      </button>
-      <button class="tool" data-tool="bumper" aria-label="Add bumpers">
-        <span class="bumper-icon"></span><small>Bumper</small>
-      </button>
-      <button class="tool" data-tool="spinner" aria-label="Add spinners">
-        <span class="spinner-icon"></span><small>Spinner</small>
-      </button>
-      <button class="tool" data-tool="portal" aria-label="Add portals">
-        <span class="portal-icon"></span><small>Portal</small>
-      </button>
-      <button class="tool" data-tool="eraser" aria-label="Erase objects">
-        <span class="eraser-icon"></span><small>Erase</small>
-      </button>
+      <button class="tool active" data-tool="marble" aria-label="Add marbles"><span class="dot"></span><small>Marble</small></button>
+      <button class="tool" data-tool="ramp" aria-label="Draw ramps"><span class="ramp-icon"></span><small>Ramp</small></button>
+      <button class="tool" data-tool="bumper" aria-label="Add bumpers"><span class="bumper-icon"></span><small>Bumper</small></button>
+      <button class="tool" data-tool="spinner" aria-label="Add spinners"><span class="spinner-icon"></span><small>Spinner</small></button>
+      <button class="tool" data-tool="portal" aria-label="Add portals"><span class="portal-icon"></span><small>Portal</small></button>
+      <button class="tool" data-tool="eraser" aria-label="Erase objects"><span class="eraser-icon"></span><small>Erase</small></button>
     </section>
 
     <dialog id="welcomeDialog">
       <form method="dialog">
         <h1>Marble Workshop</h1>
         <p>Tap for marbles. Draw ramps. Add bumpers, spinners, and portal pairs. Explore different maps and discover musical pads around the world.</p>
-        <label>
-          Play style
+        <label>Play style
           <select id="profileSelect">
             <option value="little">Little explorer</option>
             <option value="builder" selected>Builder</option>
@@ -61,6 +48,6 @@
     <div id="toast" role="status" aria-live="polite"></div>
   </main>
 
-  <script type="module" src="app.js"></script>
+  <script type="module" src="app.js?v=6"></script>
 </body>
 </html>
