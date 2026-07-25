@@ -1,5 +1,5 @@
-import { ToyEngine } from "./engine.js?v=6";
-import { MarbleLab } from "./marble-lab.js?v=6";
+import { ToyEngine } from "./engine.js?v=10";
+import { MarbleLab } from "./marble-lab.js?v=10";
 
 const canvas = document.querySelector("#toyCanvas");
 const scene = new MarbleLab();
@@ -95,7 +95,7 @@ if (savedProfile) {
 engine.start();
 
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js?v=6").catch(() => {
+  navigator.serviceWorker.register("./sw.js?v=10").catch(() => {
     showToast("Offline cache unavailable");
   });
 }
