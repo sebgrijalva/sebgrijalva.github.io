@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <title>Family Toy Lab</title>
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="stylesheet" href="styles.css?v=6" />
+  <link rel="stylesheet" href="styles.css?v=10" />
 </head>
 <body>
   <main id="app">
@@ -48,6 +48,29 @@
     <div id="toast" role="status" aria-live="polite"></div>
   </main>
 
-  <script type="module" src="app.js?v=6"></script>
+  <script>
+    (async () => {
+      const build = "10";
+      try {
+        if (localStorage.getItem("family-toy-build") !== build) {
+          if ("serviceWorker" in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(registrations.map(registration => registration.unregister()));
+          }
+          if ("caches" in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(key => caches.delete(key)));
+          }
+          localStorage.setItem("family-toy-build", build);
+        }
+      } catch (error) {
+        console.warn("Cache reset skipped", error);
+      }
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src = "./app.js?v=10";
+      document.body.appendChild(script);
+    })();
+  </script>
 </body>
 </html>
