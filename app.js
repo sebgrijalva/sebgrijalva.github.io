@@ -11,6 +11,7 @@ const startBtn = document.querySelector("#startBtn");
 const clearBtn = document.querySelector("#clearBtn");
 const modeBtn = document.querySelector("#modeBtn");
 const gravityBtn = document.querySelector("#gravityBtn");
+const sceneBtn = document.querySelector("#sceneBtn");
 const installBtn = document.querySelector("#installBtn");
 const toast = document.querySelector("#toast");
 const tools = [...document.querySelectorAll(".tool")];
@@ -21,7 +22,7 @@ function showToast(message) {
   toast.textContent = message;
   toast.classList.add("show");
   clearTimeout(showToast.timer);
-  showToast.timer = setTimeout(() => toast.classList.remove("show"), 1400);
+  showToast.timer = setTimeout(() => toast.classList.remove("show"), 1500);
 }
 
 function setTool(name) {
@@ -39,6 +40,7 @@ clearBtn.addEventListener("click", () => {
 modeBtn.addEventListener("click", () => {
   scene.setProfile(scene.profile === "builder" ? "little" : "builder");
   modeBtn.textContent = scene.profile === "builder" ? "Builder" : "Little";
+  engine.store.set("profile", scene.profile);
   showToast(scene.profile === "builder" ? "Builder mode" : "Little explorer mode");
 });
 
@@ -46,6 +48,12 @@ gravityBtn.addEventListener("click", () => {
   const on = scene.toggleGravity();
   gravityBtn.textContent = on ? "Gravity" : "Float";
   showToast(on ? "Gravity on" : "Floating world");
+});
+
+sceneBtn.addEventListener("click", () => {
+  const name = scene.cycleScene();
+  engine.store.set("sceneIndex", scene.sceneIndex);
+  showToast(`${name} map`);
 });
 
 startBtn.addEventListener("click", () => {
@@ -72,6 +80,10 @@ installBtn.addEventListener("click", async () => {
 window.addEventListener("appinstalled", () => showToast("Installed"));
 
 const savedProfile = engine.store.get("profile", null);
+const savedScene = engine.store.get("sceneIndex", 0);
+scene.sceneIndex = savedScene % scene.sceneNames.length;
+scene.clear();
+
 if (savedProfile) {
   profileSelect.value = savedProfile;
   scene.setProfile(savedProfile);
