@@ -1,101 +1,130 @@
-import { ToyEngine } from "./engine.js?v=12";
-import { MarbleLab } from "./marble-lab.js?v=12";
+import { ToyEngine } from "./engine.js?v=13";
+import { AdventureScene } from "./adventure.js?v=13";
 
 const canvas = document.querySelector("#toyCanvas");
-const scene = new MarbleLab();
+const scene = new AdventureScene();
 const engine = new ToyEngine(canvas, scene);
 
-const welcome = document.querySelector("#welcomeDialog");
-const profileSelect = document.querySelector("#profileSelect");
-const startBtn = document.querySelector("#startBtn");
-const clearBtn = document.querySelector("#clearBtn");
-const modeBtn = document.querySelector("#modeBtn");
-const gravityBtn = document.querySelector("#gravityBtn");
-const sceneBtn = document.querySelector("#sceneBtn");
-const installBtn = document.querySelector("#installBtn");
+const activeLabel = document.querySelector("#activeLabel");
+const mapLabel = document.querySelector("#mapLabel");
+const missionText = document.querySelector("#missionText");
+const inventoryButtons = [...document.querySelectorAll(".inventory-tool")];
+const joystick = document.querySelector("#joystick");
+const knob = document.querySelector("#joystickKnob");
 const toast = document.querySelector("#toast");
-const tools = [...document.querySelectorAll(".tool")];
 
-let deferredInstall = null;
+const heroName = document.querySelector("#heroName");
+const heroType = document.querySelector("#heroType");
+const heroHelmet = document.querySelector("#heroHelmet");
+const heroColor = document.querySelector("#heroColor");
+const heroAccent = document.querySelector("#heroAccent");
+const heroEmblem = document.querySelector("#heroEmblem");
+const heroCape = document.querySelector("#heroCape");
+const shipName = document.querySelector("#shipName");
+const shipHull = document.querySelector("#shipHull");
+const shipWings = document.querySelector("#shipWings");
+const shipColor = document.querySelector("#shipColor");
+const shipAccent = document.querySelector("#shipAccent");
 
-function showToast(message) {
-  toast.textContent = message;
+function showToast(text) {
+  toast.textContent = text;
   toast.classList.add("show");
   clearTimeout(showToast.timer);
-  showToast.timer = setTimeout(() => toast.classList.remove("show"), 1500);
+  showToast.timer = setTimeout(() => toast.classList.remove("show"), 1800);
 }
 
-function setTool(name) {
-  scene.setTool(name);
-  tools.forEach(b => b.classList.toggle("active", b.dataset.tool === name));
+scene.setStateListener(state => {
+  activeLabel.textContent = state.activeName;
+  mapLabel.textContent = state.mapName;
+  missionText.textContent = state.message;
+  for (const button of inventoryButtons) {
+    const tool = button.dataset.tool;
+    const unlocked = state.unlocked.includes(tool);
+    button.disabled = !unlocked;
+    button.classList.toggle("locked", !unlocked);
+    button.classList.toggle("selected", state.selectedTool === tool);
+  }
+});
+
+for (const button of inventoryButtons) {
+  button.addEventListener("click", () => {
+    scene.selectTool(button.dataset.tool);
+    showToast(`${button.querySelector("small").textContent} selected`);
+  });
 }
 
-tools.forEach(btn => btn.addEventListener("click", () => setTool(btn.dataset.tool)));
+document.querySelector("#jumpBtn").addEventListener("pointerdown", e => { e.preventDefault(); scene.jump(); });
+document.querySelector("#toolBtn").addEventListener("pointerdown", e => { e.preventDefault(); scene.useTool(); });
+document.querySelector("#switchBtn").addEventListener("click", () => scene.switchActive());
+document.querySelector("#mapBtn").addEventListener("click", () => scene.cycleMap());
+document.querySelector("#resetBtn").addEventListener("click", () => { scene.resetMap(true); showToast("World reset"); });
 
-clearBtn.addEventListener("click", () => {
-  scene.clear();
-  showToast("Fresh workshop");
+const heroDialog = document.querySelector("#heroDialog");
+const shipDialog = document.querySelector("#shipDialog");
+
+document.querySelector("#heroBtn").addEventListener("click", () => {
+  const c = scene.heroConfig;
+  heroName.value = c.name; heroType.value = c.type; heroHelmet.value = c.helmet;
+  heroColor.value = c.color; heroAccent.value = c.accent; heroEmblem.value = c.emblem; heroCape.checked = c.cape;
+  heroDialog.showModal();
 });
 
-modeBtn.addEventListener("click", () => {
-  scene.setProfile(scene.profile === "builder" ? "little" : "builder");
-  modeBtn.textContent = scene.profile === "builder" ? "Builder" : "Little";
-  engine.store.set("profile", scene.profile);
-  showToast(scene.profile === "builder" ? "Builder mode" : "Little explorer mode");
+document.querySelector("#shipBtn").addEventListener("click", () => {
+  const c = scene.shipConfig;
+  shipName.value = c.name; shipHull.value = c.hull; shipWings.value = c.wings;
+  shipColor.value = c.color; shipAccent.value = c.accent;
+  shipDialog.showModal();
 });
 
-gravityBtn.addEventListener("click", () => {
-  const on = scene.toggleGravity();
-  gravityBtn.textContent = on ? "Gravity" : "Float";
-  showToast(on ? "Gravity on" : "Floating world");
+document.querySelector("#saveHeroBtn").addEventListener("click", () => {
+  scene.updateHero({
+    name: heroName.value.trim() || "Tomás", type: heroType.value, helmet: heroHelmet.value,
+    color: heroColor.value, accent: heroAccent.value, emblem: heroEmblem.value, cape: heroCape.checked
+  });
+  showToast("Hero saved");
 });
 
-sceneBtn.addEventListener("click", () => {
-  const name = scene.cycleScene();
-  engine.store.set("sceneIndex", scene.sceneIndex);
-  showToast(`${name} map`);
+document.querySelector("#saveShipBtn").addEventListener("click", () => {
+  scene.updateShip({
+    name: shipName.value.trim() || "Comet", hull: shipHull.value, wings: shipWings.value,
+    color: shipColor.value, accent: shipAccent.value
+  });
+  showToast("Vehicle saved");
 });
 
-startBtn.addEventListener("click", () => {
-  const profile = profileSelect.value;
-  scene.setProfile(profile);
-  modeBtn.textContent = profile === "builder" ? "Builder" : "Little";
-  engine.store.set("profile", profile);
-});
-
-window.addEventListener("beforeinstallprompt", e => {
-  e.preventDefault();
-  deferredInstall = e;
-  installBtn.hidden = false;
-});
-
-installBtn.addEventListener("click", async () => {
-  if (!deferredInstall) return;
-  deferredInstall.prompt();
-  await deferredInstall.userChoice;
-  deferredInstall = null;
-  installBtn.hidden = true;
-});
-
-window.addEventListener("appinstalled", () => showToast("Installed"));
-
-const savedProfile = engine.store.get("profile", null);
-const savedScene = engine.store.get("sceneIndex", 0);
-scene.sceneIndex = savedScene % scene.sceneNames.length;
-scene.clear();
-
-if (savedProfile) {
-  profileSelect.value = savedProfile;
-  scene.setProfile(savedProfile);
-  modeBtn.textContent = savedProfile === "builder" ? "Builder" : "Little";
-} else {
-  welcome.showModal();
+let joystickPointer = null;
+function updateJoystick(e) {
+  const rect = joystick.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  let x = (e.clientX - cx) / (rect.width * .32);
+  let y = (e.clientY - cy) / (rect.height * .32);
+  const len = Math.hypot(x, y);
+  if (len > 1) { x /= len; y /= len; }
+  knob.style.transform = `translate(${x * 34}px, ${y * 34}px)`;
+  scene.setInput(x, y);
 }
+joystick.addEventListener("pointerdown", e => {
+  joystickPointer = e.pointerId;
+  joystick.setPointerCapture?.(e.pointerId);
+  engine.audio.unlock();
+  updateJoystick(e);
+});
+joystick.addEventListener("pointermove", e => { if (e.pointerId === joystickPointer) updateJoystick(e); });
+function releaseJoystick(e) {
+  if (e.pointerId !== joystickPointer) return;
+  joystickPointer = null;
+  knob.style.transform = "translate(0, 0)";
+  scene.setInput(0, 0);
+}
+joystick.addEventListener("pointerup", releaseJoystick);
+joystick.addEventListener("pointercancel", releaseJoystick);
 
 engine.start();
 
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js?v=12").catch(() => {
-    showToast("Offline cache unavailable");
-  });
+if (!engine.store.get("heroCreated", false)) {
+  engine.store.set("heroCreated", true);
+  setTimeout(() => document.querySelector("#heroBtn").click(), 250);
 }
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js?v=13").catch(() => {});
