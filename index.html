@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <title>Family Toy Lab</title>
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="stylesheet" href="styles.css?v=10" />
+  <link rel="stylesheet" href="styles.css?v=12" />
 </head>
 <body>
   <main id="app">
@@ -50,7 +50,7 @@
 
   <script>
     (async () => {
-      const build = "10";
+      const build = "12";
       try {
         if (localStorage.getItem("family-toy-build") !== build) {
           if ("serviceWorker" in navigator) {
@@ -68,7 +68,7 @@
       }
       const script = document.createElement("script");
       script.type = "module";
-      script.src = "./app.js?v=10";
+      script.src = "./app.js?v=12";
       document.body.appendChild(script);
     })();
   </script>
