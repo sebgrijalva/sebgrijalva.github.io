@@ -1,4 +1,4 @@
-name: Deploy Family Toy Lab
+name: Test and Deploy Adventure Lab
 
 on:
   push:
@@ -23,12 +23,39 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pinned Matter.js
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Run Matter.js smoke test
+        run: npm test
+
+      - name: Build static site
+        run: |
+          mkdir -p _site/vendor
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='_site' \
+            --exclude='node_modules' \
+            --exclude='tests' \
+            ./ _site/
+          cp node_modules/matter-js/build/matter.min.js _site/vendor/matter.min.js
+          test -s _site/vendor/matter.min.js
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
+
       - name: Upload static site
         uses: actions/upload-pages-artifact@v4
         with:
-          path: .
+          path: _site
+
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
