@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/matter-smoke.mjs"
+    "test": "node tests/platformer-smoke.mjs"
   },
   "devDependencies": {
     "matter-js": "0.20.0"
