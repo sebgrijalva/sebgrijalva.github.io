@@ -52,3 +52,38 @@ button { border: 0; color: var(--ink); font-weight: 800; }
   #joystickKnob { left: 27px; top: 27px; }
   .action-button { width: 102px; height: 54px; font-size: 13px; }
 }
+
+/* v14: powers, villains, install, and quick eraser */
+#topBar {
+  justify-content: flex-start;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-inline: 8px;
+}
+#topBar::-webkit-scrollbar { display: none; }
+#topBar button { flex: 0 0 auto; }
+#eraserBtn.active { background: #f9a8d4; color: #831843; outline: 3px solid rgba(190,24,93,.25); }
+#installBtn.ready { background: #86efac; color: #14532d; }
+#powers { display: flex; gap: 7px; margin-top: 7px; }
+.power-choice {
+  min-width: 64px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.92);
+  display: grid;
+  grid-template-columns: 23px 1fr;
+  align-items: center;
+  padding: 4px 7px;
+  font-size: 18px;
+}
+.power-choice small { font-size: 10px; }
+.power-choice.selected { outline: 3px solid rgba(249,115,22,.34); background: #fff7ed; }
+#actionButtons { gap: 7px; }
+.action-button.power { background: #7c3aed; box-shadow: 0 8px 20px rgba(76,29,149,.28); }
+@media (max-width: 440px) {
+  #statusCard { max-width: min(calc(100% - 20px), 330px); }
+  #inventory, #powers { gap: 5px; }
+  .inventory-tool { min-width: 62px; padding: 3px 5px; }
+  .power-choice { min-width: 58px; padding: 3px 5px; }
+  .action-button { width: 96px; height: 49px; }
+}
