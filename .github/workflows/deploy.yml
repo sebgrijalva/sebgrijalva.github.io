@@ -29,6 +29,9 @@ jobs:
         with:
           node-version: 22
 
+      - name: Expand v16 platformer source
+        run: base64 --decode platformer-v16.js.gz.b64 | gzip --decompress > platformer-v16.js
+
       - name: Install pinned Matter.js
         run: npm install --ignore-scripts --no-audit --no-fund
 
@@ -44,6 +47,7 @@ jobs:
             --exclude='_site' \
             --exclude='node_modules' \
             --exclude='tests' \
+            --exclude='*.gz.b64' \
             ./ _site/
           cp node_modules/matter-js/build/matter.min.js _site/vendor/matter.min.js
           test -s _site/vendor/matter.min.js
