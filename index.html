@@ -7,7 +7,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <title>Tomás Adventure Lab</title>
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="stylesheet" href="styles.css?v=13" />
+  <link rel="stylesheet" href="styles.css?v=14" />
 </head>
 <body>
   <main id="app">
@@ -18,6 +18,8 @@
       <button id="shipBtn">Ship</button>
       <button id="switchBtn">Switch</button>
       <button id="mapBtn">Map</button>
+      <button id="eraserBtn" aria-pressed="false">Erase</button>
+      <button id="installBtn">Install</button>
       <button id="resetBtn">Reset</button>
     </header>
 
@@ -30,12 +32,18 @@
         <button class="inventory-tool locked" data-tool="grapple" disabled>↗<small>Grapple</small></button>
         <button class="inventory-tool locked" data-tool="thruster" disabled>✦<small>Thruster</small></button>
       </div>
+      <div id="powers" aria-label="Super powers">
+        <button class="power-choice selected" data-power="fire">🔥<small>Fire</small></button>
+        <button class="power-choice" data-power="ice">❄️<small>Ice</small></button>
+        <button class="power-choice" data-power="lightning">⚡<small>Bolt</small></button>
+      </div>
     </section>
 
     <section id="controls">
       <div id="joystick" class="glass" aria-label="Movement joystick"><div id="joystickKnob"></div></div>
       <div id="actionButtons">
         <button id="jumpBtn" class="action-button">BOUNCE</button>
+        <button id="powerBtn" class="action-button power">THROW 🔥</button>
         <button id="toolBtn" class="action-button secondary">USE TOOL</button>
       </div>
     </section>
@@ -75,7 +83,7 @@
 
   <script>
     (async () => {
-      const build = "13";
+      const build = "14";
       try {
         if (localStorage.getItem("family-adventure-build") !== build) {
           if ("serviceWorker" in navigator) {
@@ -91,7 +99,7 @@
       } catch { }
       const script = document.createElement("script");
       script.type = "module";
-      script.src = "./app.js?v=13";
+      script.src = "./app.js?v=14";
       document.body.appendChild(script);
     })();
   </script>
