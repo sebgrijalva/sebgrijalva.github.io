@@ -1,5 +1,5 @@
 import { ToyEngine } from "./engine.js?v=14";
-import { AdventureScene } from "./adventure.js?v=14";
+import { AdventureScene } from "./adventure-v14.js?v=14";
 
 const canvas = document.querySelector("#toyCanvas");
 const scene = new AdventureScene();
