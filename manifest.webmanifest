@@ -1,18 +1,11 @@
 {
-  "name": "Family Toy Lab",
-  "short_name": "Toy Lab",
-  "description": "A private, offline, touch-first family toy workshop.",
+  "name": "Tomás Adventure Lab",
+  "short_name": "Adventure Lab",
+  "description": "A private physics-adventure sandbox for creating heroes, vehicles, and tools.",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#f4efe7",
-  "theme_color": "#f4efe7",
+  "background_color": "#dff4ff",
+  "theme_color": "#dff4ff",
   "orientation": "any",
-  "icons": [
-    {
-      "src": "icons/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ]
+  "icons": [{ "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
 }
