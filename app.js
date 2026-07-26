@@ -1,9 +1,10 @@
-import { ToyEngine } from "./engine.js?v=14";
-import { AdventureScene } from "./adventure-v14.js?v=14";
+import { ToyEngine } from "./engine.js?v=15";
+import { MatterAdventureScene } from "./matter-adventure.js?v=15";
 
 const canvas = document.querySelector("#toyCanvas");
-const scene = new AdventureScene();
+const scene = new MatterAdventureScene();
 const engine = new ToyEngine(canvas, scene);
+window.__adventureLab = { scene, engine, physics: "Matter.js 0.20.0" };
 
 const activeLabel = document.querySelector("#activeLabel");
 const mapLabel = document.querySelector("#mapLabel");
@@ -69,9 +70,9 @@ for (const button of powerButtons) {
   });
 }
 
-document.querySelector("#jumpBtn").addEventListener("pointerdown", e => { e.preventDefault(); scene.jump(); });
-document.querySelector("#toolBtn").addEventListener("pointerdown", e => { e.preventDefault(); scene.useTool(); });
-powerBtn.addEventListener("pointerdown", e => { e.preventDefault(); scene.throwPower(); });
+document.querySelector("#jumpBtn").addEventListener("pointerdown", event => { event.preventDefault(); scene.jump(); });
+document.querySelector("#toolBtn").addEventListener("pointerdown", event => { event.preventDefault(); scene.useTool(); });
+powerBtn.addEventListener("pointerdown", event => { event.preventDefault(); scene.throwPower(); });
 eraserBtn.addEventListener("click", () => scene.toggleErase());
 document.querySelector("#switchBtn").addEventListener("click", () => scene.switchActive());
 document.querySelector("#mapBtn").addEventListener("click", () => scene.cycleMap());
@@ -81,16 +82,16 @@ const heroDialog = document.querySelector("#heroDialog");
 const shipDialog = document.querySelector("#shipDialog");
 
 document.querySelector("#heroBtn").addEventListener("click", () => {
-  const c = scene.heroConfig;
-  heroName.value = c.name; heroType.value = c.type; heroHelmet.value = c.helmet;
-  heroColor.value = c.color; heroAccent.value = c.accent; heroEmblem.value = c.emblem; heroCape.checked = c.cape;
+  const config = scene.heroConfig;
+  heroName.value = config.name; heroType.value = config.type; heroHelmet.value = config.helmet;
+  heroColor.value = config.color; heroAccent.value = config.accent; heroEmblem.value = config.emblem; heroCape.checked = config.cape;
   heroDialog.showModal();
 });
 
 document.querySelector("#shipBtn").addEventListener("click", () => {
-  const c = scene.shipConfig;
-  shipName.value = c.name; shipHull.value = c.hull; shipWings.value = c.wings;
-  shipColor.value = c.color; shipAccent.value = c.accent;
+  const config = scene.shipConfig;
+  shipName.value = config.name; shipHull.value = config.hull; shipWings.value = config.wings;
+  shipColor.value = config.color; shipAccent.value = config.accent;
   shipDialog.showModal();
 });
 
@@ -111,26 +112,26 @@ document.querySelector("#saveShipBtn").addEventListener("click", () => {
 });
 
 let joystickPointer = null;
-function updateJoystick(e) {
+function updateJoystick(event) {
   const rect = joystick.getBoundingClientRect();
-  const cx = rect.left + rect.width / 2;
-  const cy = rect.top + rect.height / 2;
-  let x = (e.clientX - cx) / (rect.width * .32);
-  let y = (e.clientY - cy) / (rect.height * .32);
-  const len = Math.hypot(x, y);
-  if (len > 1) { x /= len; y /= len; }
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+  let x = (event.clientX - centerX) / (rect.width * .32);
+  let y = (event.clientY - centerY) / (rect.height * .32);
+  const length = Math.hypot(x, y);
+  if (length > 1) { x /= length; y /= length; }
   knob.style.transform = `translate(${x * 34}px, ${y * 34}px)`;
   scene.setInput(x, y);
 }
-joystick.addEventListener("pointerdown", e => {
-  joystickPointer = e.pointerId;
-  joystick.setPointerCapture?.(e.pointerId);
+joystick.addEventListener("pointerdown", event => {
+  joystickPointer = event.pointerId;
+  joystick.setPointerCapture?.(event.pointerId);
   engine.audio.unlock();
-  updateJoystick(e);
+  updateJoystick(event);
 });
-joystick.addEventListener("pointermove", e => { if (e.pointerId === joystickPointer) updateJoystick(e); });
-function releaseJoystick(e) {
-  if (e.pointerId !== joystickPointer) return;
+joystick.addEventListener("pointermove", event => { if (event.pointerId === joystickPointer) updateJoystick(event); });
+function releaseJoystick(event) {
+  if (event.pointerId !== joystickPointer) return;
   joystickPointer = null;
   knob.style.transform = "translate(0, 0)";
   scene.setInput(0, 0);
@@ -171,4 +172,4 @@ if (!engine.store.get("heroCreated", false)) {
   setTimeout(() => document.querySelector("#heroBtn").click(), 250);
 }
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js?v=14").catch(() => {});
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js?v=15").catch(() => {});
