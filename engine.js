@@ -1,5 +1,133 @@
-export const TAU=Math.PI*2;
-export class Vec2{constructor(x=0,y=0){this.x=x;this.y=y}clone(){return new Vec2(this.x,this.y)}set(x,y){this.x=x;this.y=y;return this}add(v){this.x+=v.x;this.y+=v.y;return this}sub(v){this.x-=v.x;this.y-=v.y;return this}mul(s){this.x*=s;this.y*=s;return this}length(){return Math.hypot(this.x,this.y)}normalize(){const n=this.length()||1;this.x/=n;this.y/=n;return this}static sub(a,b){return new Vec2(a.x-b.x,a.y-b.y)}static dot(a,b){return a.x*b.x+a.y*b.y}}
-export class Store{constructor(ns="family-toy-lab"){this.ns=ns}get(k,f){try{const v=localStorage.getItem(`${this.ns}:${k}`);return v===null?f:JSON.parse(v)}catch{return f}}set(k,v){try{localStorage.setItem(`${this.ns}:${k}`,JSON.stringify(v))}catch{}}}
-export class TinyAudio{unlock(){if(!this.ctx)this.ctx=new(window.AudioContext||window.webkitAudioContext)();this.ctx.resume?.()}ping(freq=360,d=.06,g=.02,type="sine"){if(!this.ctx)return;const t=this.ctx.currentTime,o=this.ctx.createOscillator(),a=this.ctx.createGain();o.type=type;o.frequency.value=freq;a.gain.setValueAtTime(g,t);a.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(a).connect(this.ctx.destination);o.start(t);o.stop(t+d)}}
-export class ToyEngine{constructor(canvas,scene){this.canvas=canvas;this.ctx=canvas.getContext("2d",{alpha:false});this.scene=scene;this.audio=new TinyAudio;this.store=new Store;this.dpr=Math.min(devicePixelRatio||1,2);this.last=0;this.pointer=new Map;this.bind();this.resize();scene.mount?.(this)}bind(){addEventListener("resize",()=>this.resize(),{passive:true});for(const type of["pointerdown","pointermove","pointerup","pointercancel"])this.canvas.addEventListener(type,e=>{const r=this.canvas.getBoundingClientRect(),p=new Vec2((e.clientX-r.left)*this.canvas.width/r.width,(e.clientY-r.top)*this.canvas.height/r.height);if(type==="pointerdown"){this.canvas.setPointerCapture?.(e.pointerId);this.pointer.set(e.pointerId,p);this.scene.onDown?.({id:e.pointerId,point:p})}else if(type==="pointermove"&&this.pointer.has(e.pointerId)){this.pointer.set(e.pointerId,p);this.scene.onMove?.({id:e.pointerId,point:p})}else{this.pointer.delete(e.pointerId);this.scene.onUp?.({id:e.pointerId,point:p})}})}resize(){const r=this.canvas.getBoundingClientRect();this.canvas.width=Math.max(1,Math.round(r.width*this.dpr));this.canvas.height=Math.max(1,Math.round(r.height*this.dpr));this.scene.resize?.(this.canvas.width,this.canvas.height)}start(){requestAnimationFrame(t=>this.frame(t))}frame(t){const dt=this.last?Math.min((t-this.last)/1000,1/30):0;this.last=t;this.scene.update?.(dt);this.scene.render?.(this.ctx);requestAnimationFrame(n=>this.frame(n))}}
+export const TAU = Math.PI * 2;
+
+export class Vec2 {
+  constructor(x = 0, y = 0) { this.x = x; this.y = y; }
+  clone() { return new Vec2(this.x, this.y); }
+  set(x, y) { this.x = x; this.y = y; return this; }
+  add(v) { this.x += v.x; this.y += v.y; return this; }
+  sub(v) { this.x -= v.x; this.y -= v.y; return this; }
+  mul(s) { this.x *= s; this.y *= s; return this; }
+  length() { return Math.hypot(this.x, this.y); }
+  normalize() {
+    const n = this.length() || 1;
+    this.x /= n; this.y /= n;
+    return this;
+  }
+  static add(a, b) { return new Vec2(a.x + b.x, a.y + b.y); }
+  static sub(a, b) { return new Vec2(a.x - b.x, a.y - b.y); }
+  static dot(a, b) { return a.x * b.x + a.y * b.y; }
+}
+
+export class Store {
+  constructor(namespace = "family-toy-lab") { this.namespace = namespace; }
+  get(key, fallback) {
+    try {
+      const raw = localStorage.getItem(`${this.namespace}:${key}`);
+      return raw == null ? fallback : JSON.parse(raw);
+    } catch { return fallback; }
+  }
+  set(key, value) {
+    try { localStorage.setItem(`${this.namespace}:${key}`, JSON.stringify(value)); }
+    catch { /* storage may be disabled */ }
+  }
+}
+
+export class TinyAudio {
+  constructor() { this.ctx = null; }
+  unlock() {
+    if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (this.ctx.state === "suspended") this.ctx.resume();
+  }
+  ping(freq = 360, duration = .07, gain = .03, type = "sine") {
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const amp = this.ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, now);
+    amp.gain.setValueAtTime(gain, now);
+    amp.gain.exponentialRampToValueAtTime(.0001, now + duration);
+    osc.connect(amp).connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + duration);
+  }
+}
+
+export class PointerHub {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.active = new Map();
+    this.handlers = { down: [], move: [], up: [] };
+    canvas.addEventListener("pointerdown", e => this.#onDown(e));
+    canvas.addEventListener("pointermove", e => this.#onMove(e));
+    canvas.addEventListener("pointerup", e => this.#onUp(e));
+    canvas.addEventListener("pointercancel", e => this.#onUp(e));
+  }
+  on(type, handler) { this.handlers[type].push(handler); }
+  point(e) {
+    const r = this.canvas.getBoundingClientRect();
+    return new Vec2(
+      (e.clientX - r.left) * this.canvas.width / r.width,
+      (e.clientY - r.top) * this.canvas.height / r.height
+    );
+  }
+  #emit(type, payload) { for (const h of this.handlers[type]) h(payload); }
+  #onDown(e) {
+    this.canvas.setPointerCapture?.(e.pointerId);
+    const p = this.point(e);
+    this.active.set(e.pointerId, p);
+    this.#emit("down", { id: e.pointerId, point: p, event: e, count: this.active.size });
+  }
+  #onMove(e) {
+    if (!this.active.has(e.pointerId)) return;
+    const p = this.point(e);
+    this.active.set(e.pointerId, p);
+    this.#emit("move", { id: e.pointerId, point: p, event: e, count: this.active.size });
+  }
+  #onUp(e) {
+    const p = this.point(e);
+    this.active.delete(e.pointerId);
+    this.#emit("up", { id: e.pointerId, point: p, event: e, count: this.active.size });
+  }
+}
+
+export class ToyEngine {
+  constructor(canvas, scene) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext("2d", { alpha: false });
+    this.scene = scene;
+    this.pointer = new PointerHub(canvas);
+    this.audio = new TinyAudio();
+    this.store = new Store();
+    this.running = false;
+    this.lastTime = 0;
+    this.maxDt = 1 / 30;
+    this.dpr = Math.min(devicePixelRatio || 1, 2);
+    this.#bindResize();
+    this.resize();
+    this.scene.mount?.(this);
+  }
+  #bindResize() {
+    window.addEventListener("resize", () => this.resize(), { passive: true });
+    window.addEventListener("orientationchange", () => setTimeout(() => this.resize(), 100), { passive: true });
+  }
+  resize() {
+    const rect = this.canvas.getBoundingClientRect();
+    this.canvas.width = Math.max(1, Math.round(rect.width * this.dpr));
+    this.canvas.height = Math.max(1, Math.round(rect.height * this.dpr));
+    this.scene.resize?.(this.canvas.width, this.canvas.height);
+  }
+  start() {
+    if (this.running) return;
+    this.running = true;
+    requestAnimationFrame(t => this.#frame(t));
+  }
+  #frame(t) {
+    if (!this.running) return;
+    const dt = this.lastTime ? Math.min((t - this.lastTime) / 1000, this.maxDt) : 0;
+    this.lastTime = t;
+    this.scene.update?.(dt);
+    this.scene.render?.(this.ctx);
+    requestAnimationFrame(next => this.#frame(next));
+  }
+}
