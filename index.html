@@ -3,45 +3,70 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
-  <meta name="theme-color" content="#f4efe7" />
+  <meta name="theme-color" content="#dff4ff" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <title>Family Toy Lab</title>
+  <title>Tomás Adventure Lab</title>
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="stylesheet" href="styles.css?v=12" />
+  <link rel="stylesheet" href="styles.css?v=13" />
 </head>
 <body>
   <main id="app">
-    <canvas id="toyCanvas" aria-label="Interactive marble and ramp toy"></canvas>
+    <canvas id="toyCanvas" aria-label="Physics adventure world"></canvas>
 
-    <section id="topBar" class="glass">
-      <button id="clearBtn" aria-label="Clear toy">Clear</button>
-      <button id="modeBtn" aria-label="Change mode">Builder</button>
-      <button id="gravityBtn" aria-label="Toggle gravity">Gravity</button>
-      <button id="sceneBtn" aria-label="Change map">Map</button>
-      <button id="installBtn" hidden aria-label="Install app">Install</button>
+    <header id="topBar" class="glass">
+      <button id="heroBtn">Hero</button>
+      <button id="shipBtn">Ship</button>
+      <button id="switchBtn">Switch</button>
+      <button id="mapBtn">Map</button>
+      <button id="resetBtn">Reset</button>
+    </header>
+
+    <section id="statusCard" class="glass">
+      <strong id="activeLabel">Tomás</strong>
+      <span id="mapLabel">Meadow</span>
+      <p id="missionText">Explore. Tools are hidden across the map.</p>
+      <div id="inventory" aria-label="Unlocked tools">
+        <button class="inventory-tool locked" data-tool="magnet" disabled>🧲<small>Magnet</small></button>
+        <button class="inventory-tool locked" data-tool="grapple" disabled>↗<small>Grapple</small></button>
+        <button class="inventory-tool locked" data-tool="thruster" disabled>✦<small>Thruster</small></button>
+      </div>
     </section>
 
-    <section id="toolDock" class="glass" aria-label="Toy tools">
-      <button class="tool active" data-tool="marble" aria-label="Add marbles"><span class="dot"></span><small>Marble</small></button>
-      <button class="tool" data-tool="ramp" aria-label="Draw ramps"><span class="ramp-icon"></span><small>Ramp</small></button>
-      <button class="tool" data-tool="bumper" aria-label="Add bumpers"><span class="bumper-icon"></span><small>Bumper</small></button>
-      <button class="tool" data-tool="spinner" aria-label="Add spinners"><span class="spinner-icon"></span><small>Spinner</small></button>
-      <button class="tool" data-tool="portal" aria-label="Add portals"><span class="portal-icon"></span><small>Portal</small></button>
-      <button class="tool" data-tool="eraser" aria-label="Erase objects"><span class="eraser-icon"></span><small>Erase</small></button>
+    <section id="controls">
+      <div id="joystick" class="glass" aria-label="Movement joystick"><div id="joystickKnob"></div></div>
+      <div id="actionButtons">
+        <button id="jumpBtn" class="action-button">BOUNCE</button>
+        <button id="toolBtn" class="action-button secondary">USE TOOL</button>
+      </div>
     </section>
 
-    <dialog id="welcomeDialog">
-      <form method="dialog">
-        <h1>Marble Workshop</h1>
-        <p>Tap for marbles. Draw ramps. Add bumpers, spinners, and portal pairs. Explore different maps and discover musical pads around the world.</p>
-        <label>Play style
-          <select id="profileSelect">
-            <option value="little">Little explorer</option>
-            <option value="builder" selected>Builder</option>
-          </select>
-        </label>
-        <button id="startBtn" value="default">Start</button>
+    <dialog id="heroDialog" class="creator-dialog">
+      <form method="dialog" id="heroForm">
+        <h2>Create your explorer</h2>
+        <label>Name<input id="heroName" maxlength="16" value="Tomás" /></label>
+        <div class="two-col">
+          <label>Kind<select id="heroType"><option value="hero">Superhero</option><option value="robot">Robot</option><option value="alien">Alien</option></select></label>
+          <label>Helmet<select id="heroHelmet"><option value="visor">Visor</option><option value="antenna">Antenna</option><option value="open">Open</option></select></label>
+          <label>Suit color<input id="heroColor" type="color" value="#3b82f6" /></label>
+          <label>Accent<input id="heroAccent" type="color" value="#facc15" /></label>
+          <label>Emblem<select id="heroEmblem"><option value="star">Star</option><option value="bolt">Lightning</option><option value="planet">Planet</option></select></label>
+          <label class="check"><input id="heroCape" type="checkbox" checked /> Cape</label>
+        </div>
+        <menu><button value="cancel">Cancel</button><button id="saveHeroBtn" value="default">Save hero</button></menu>
+      </form>
+    </dialog>
+
+    <dialog id="shipDialog" class="creator-dialog">
+      <form method="dialog" id="shipForm">
+        <h2>Build your vehicle</h2>
+        <label>Name<input id="shipName" maxlength="16" value="Comet" /></label>
+        <div class="two-col">
+          <label>Hull<select id="shipHull"><option value="rocket">Rocket</option><option value="saucer">Saucer</option><option value="rover">Rover</option></select></label>
+          <label>Wings<select id="shipWings"><option value="swept">Swept</option><option value="wide">Wide</option><option value="fins">Fins</option></select></label>
+          <label>Body color<input id="shipColor" type="color" value="#ef4444" /></label>
+          <label>Trim<input id="shipAccent" type="color" value="#e5e7eb" /></label>
+        </div>
+        <menu><button value="cancel">Cancel</button><button id="saveShipBtn" value="default">Save ship</button></menu>
       </form>
     </dialog>
 
@@ -50,25 +75,23 @@
 
   <script>
     (async () => {
-      const build = "12";
+      const build = "13";
       try {
-        if (localStorage.getItem("family-toy-build") !== build) {
+        if (localStorage.getItem("family-adventure-build") !== build) {
           if ("serviceWorker" in navigator) {
             const registrations = await navigator.serviceWorker.getRegistrations();
-            await Promise.all(registrations.map(registration => registration.unregister()));
+            await Promise.all(registrations.map(r => r.unregister()));
           }
           if ("caches" in window) {
             const keys = await caches.keys();
-            await Promise.all(keys.map(key => caches.delete(key)));
+            await Promise.all(keys.map(k => caches.delete(k)));
           }
-          localStorage.setItem("family-toy-build", build);
+          localStorage.setItem("family-adventure-build", build);
         }
-      } catch (error) {
-        console.warn("Cache reset skipped", error);
-      }
+      } catch { }
       const script = document.createElement("script");
       script.type = "module";
-      script.src = "./app.js?v=12";
+      script.src = "./app.js?v=13";
       document.body.appendChild(script);
     })();
   </script>
