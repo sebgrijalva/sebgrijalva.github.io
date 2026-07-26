@@ -1,11 +1,16 @@
 {
+  "id": "/",
   "name": "Tomás Adventure Lab",
   "short_name": "Adventure Lab",
-  "description": "A private physics-adventure sandbox for creating heroes, vehicles, and tools.",
-  "start_url": "./",
+  "description": "A private physics-adventure sandbox for creating heroes, vehicles, powers, tools, and friendly fantasy villains.",
+  "start_url": "./?v=14",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#dff4ff",
   "theme_color": "#dff4ff",
   "orientation": "any",
-  "icons": [{ "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+  "prefer_related_applications": false,
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
 }
