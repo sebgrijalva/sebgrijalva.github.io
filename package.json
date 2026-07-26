@@ -1,0 +1,11 @@
+{
+  "name": "tomas-adventure-lab",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests/matter-smoke.mjs"
+  },
+  "devDependencies": {
+    "matter-js": "0.20.0"
+  }
+}
