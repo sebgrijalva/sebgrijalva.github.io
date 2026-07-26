@@ -1,5 +1,5 @@
-import { ToyEngine } from "./engine.js?v=13";
-import { AdventureScene } from "./adventure.js?v=13";
+import { ToyEngine } from "./engine.js?v=14";
+import { AdventureScene } from "./adventure.js?v=14";
 
 const canvas = document.querySelector("#toyCanvas");
 const scene = new AdventureScene();
@@ -9,6 +9,10 @@ const activeLabel = document.querySelector("#activeLabel");
 const mapLabel = document.querySelector("#mapLabel");
 const missionText = document.querySelector("#missionText");
 const inventoryButtons = [...document.querySelectorAll(".inventory-tool")];
+const powerButtons = [...document.querySelectorAll(".power-choice")];
+const powerBtn = document.querySelector("#powerBtn");
+const eraserBtn = document.querySelector("#eraserBtn");
+const installBtn = document.querySelector("#installBtn");
 const joystick = document.querySelector("#joystick");
 const knob = document.querySelector("#joystickKnob");
 const toast = document.querySelector("#toast");
@@ -44,6 +48,11 @@ scene.setStateListener(state => {
     button.classList.toggle("locked", !unlocked);
     button.classList.toggle("selected", state.selectedTool === tool);
   }
+  for (const button of powerButtons) button.classList.toggle("selected", state.selectedPower === button.dataset.power);
+  const powerIcons = { fire: "🔥", ice: "❄️", lightning: "⚡" };
+  powerBtn.textContent = `THROW ${powerIcons[state.selectedPower]}`;
+  eraserBtn.classList.toggle("active", state.eraseMode);
+  eraserBtn.setAttribute("aria-pressed", String(state.eraseMode));
 });
 
 for (const button of inventoryButtons) {
@@ -53,8 +62,17 @@ for (const button of inventoryButtons) {
   });
 }
 
+for (const button of powerButtons) {
+  button.addEventListener("click", () => {
+    scene.selectPower(button.dataset.power);
+    showToast(`${button.querySelector("small").textContent} power selected`);
+  });
+}
+
 document.querySelector("#jumpBtn").addEventListener("pointerdown", e => { e.preventDefault(); scene.jump(); });
 document.querySelector("#toolBtn").addEventListener("pointerdown", e => { e.preventDefault(); scene.useTool(); });
+powerBtn.addEventListener("pointerdown", e => { e.preventDefault(); scene.throwPower(); });
+eraserBtn.addEventListener("click", () => scene.toggleErase());
 document.querySelector("#switchBtn").addEventListener("click", () => scene.switchActive());
 document.querySelector("#mapBtn").addEventListener("click", () => scene.cycleMap());
 document.querySelector("#resetBtn").addEventListener("click", () => { scene.resetMap(true); showToast("World reset"); });
@@ -120,6 +138,32 @@ function releaseJoystick(e) {
 joystick.addEventListener("pointerup", releaseJoystick);
 joystick.addEventListener("pointercancel", releaseJoystick);
 
+let deferredInstall = null;
+window.addEventListener("beforeinstallprompt", event => {
+  event.preventDefault();
+  deferredInstall = event;
+  installBtn.classList.add("ready");
+});
+installBtn.addEventListener("click", async () => {
+  if (window.matchMedia("(display-mode: standalone)").matches) {
+    showToast("Already installed");
+    return;
+  }
+  if (deferredInstall) {
+    deferredInstall.prompt();
+    await deferredInstall.userChoice;
+    deferredInstall = null;
+    installBtn.classList.remove("ready");
+  } else {
+    showToast("Chrome menu ⋮ → Add to Home screen");
+  }
+});
+window.addEventListener("appinstalled", () => {
+  installBtn.hidden = true;
+  showToast("Adventure Lab installed");
+});
+if (window.matchMedia("(display-mode: standalone)").matches) installBtn.hidden = true;
+
 engine.start();
 
 if (!engine.store.get("heroCreated", false)) {
@@ -127,4 +171,4 @@ if (!engine.store.get("heroCreated", false)) {
   setTimeout(() => document.querySelector("#heroBtn").click(), 250);
 }
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js?v=13").catch(() => {});
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js?v=14").catch(() => {});
