@@ -5,13 +5,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
   <meta name="theme-color" content="#dff4ff" />
   <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
   <title>Tomás Adventure Lab</title>
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="stylesheet" href="styles.css?v=14" />
+  <link rel="stylesheet" href="styles.css?v=15" />
 </head>
 <body>
   <main id="app">
-    <canvas id="toyCanvas" aria-label="Physics adventure world"></canvas>
+    <canvas id="toyCanvas" aria-label="Matter.js physics adventure world"></canvas>
 
     <header id="topBar" class="glass">
       <button id="heroBtn">Hero</button>
@@ -26,7 +27,7 @@
     <section id="statusCard" class="glass">
       <strong id="activeLabel">Tomás</strong>
       <span id="mapLabel">Meadow</span>
-      <p id="missionText">Explore. Tools are hidden across the map.</p>
+      <p id="missionText">Explore. Tools and villains are hidden across the map.</p>
       <div id="inventory" aria-label="Unlocked tools">
         <button class="inventory-tool locked" data-tool="magnet" disabled>🧲<small>Magnet</small></button>
         <button class="inventory-tool locked" data-tool="grapple" disabled>↗<small>Grapple</small></button>
@@ -81,25 +82,26 @@
     <div id="toast" role="status" aria-live="polite"></div>
   </main>
 
+  <script src="./vendor/matter.min.js?v=15"></script>
   <script>
     (async () => {
-      const build = "14";
+      const build = "15";
       try {
         if (localStorage.getItem("family-adventure-build") !== build) {
           if ("serviceWorker" in navigator) {
             const registrations = await navigator.serviceWorker.getRegistrations();
-            await Promise.all(registrations.map(r => r.unregister()));
+            await Promise.all(registrations.map(registration => registration.unregister()));
           }
           if ("caches" in window) {
             const keys = await caches.keys();
-            await Promise.all(keys.map(k => caches.delete(k)));
+            await Promise.all(keys.map(key => caches.delete(key)));
           }
           localStorage.setItem("family-adventure-build", build);
         }
       } catch { }
       const script = document.createElement("script");
       script.type = "module";
-      script.src = "./app.js?v=14";
+      script.src = "./app.js?v=15";
       document.body.appendChild(script);
     })();
   </script>
