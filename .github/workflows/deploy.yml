@@ -32,6 +32,9 @@ jobs:
       - name: Expand v16 platformer source
         run: base64 --decode platformer-v16.js.gz.b64 | gzip --decompress > platformer-v16.js
 
+      - name: Expand v17 gameplay overlay
+        run: base64 --decode v17-overlay.tar.gz.b64 | tar -xzf -
+
       - name: Install pinned Matter.js
         run: npm install --ignore-scripts --no-audit --no-fund
 
