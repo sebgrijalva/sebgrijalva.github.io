@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#172033" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Tomás Adventure Lab</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css?v=16" />
+  <link rel="stylesheet" href="v17.css?v=17" />
+  <link rel="stylesheet" href="v18.css?v=18" />
+</head>
+<body>
+  <main id="app">
+    <canvas id="toyCanvas" aria-label="Side-scrolling physics adventure"></canvas>
+
+    <header id="topBar" class="glass">
+      <button id="heroBtn">Hero</button>
+      <button id="shipBtn">Ship</button>
+      <button id="switchBtn">Switch</button>
+      <button id="mapBtn">Map</button>
+      <button id="eraserBtn" aria-pressed="false">Erase</button>
+      <button id="buildBtn" aria-pressed="false">Build</button>
+      <button id="installBtn">Install</button>
+      <button id="resetBtn">Reset</button>
+    </header>
+
+    <section id="statusCard" class="glass">
+      <div class="status-heading"><strong id="activeLabel">Tomás</strong><span id="mapLabel">Emerald Valley</span></div>
+      <p id="missionText">Move right and reach the gate.</p>
+      <div id="inventory" aria-label="Unlocked tools">
+        <button class="inventory-tool locked" data-tool="magnet" disabled>🧲<small>Magnet</small></button>
+        <button class="inventory-tool locked" data-tool="grapple" disabled>↗<small>Grapple</small></button>
+        <button class="inventory-tool locked" data-tool="thruster" disabled>✦<small>Thruster</small></button>
+      </div>
+      <div id="powers" aria-label="Super powers">
+        <button class="power-choice selected" data-power="fire">🔥<small>Fire</small></button>
+        <button class="power-choice" data-power="ice">❄️<small>Ice</small></button>
+        <button class="power-choice" data-power="lightning">⚡<small>Bolt</small></button>
+      </div>
+      <div id="movementBadges" aria-label="Movement badge">
+        <button class="badge-choice selected" data-badge="spring">↥<small>Spring</small></button>
+        <button class="badge-choice" data-badge="glide">◒<small>Glide</small></button>
+        <button class="badge-choice" data-badge="dash">➜<small>Dash</small></button>
+      </div>
+    </section>
+
+    <section id="scoreCard" class="glass" aria-label="Adventure score">
+      <div class="score-grid">
+        <span><small>KILLS</small><b id="killCount">0</b></span><span><small>BEST</small><b id="bestKillCount">0</b></span><span><small>TOTAL</small><b id="totalKillCount">0</b></span>
+      </div>
+      <div id="comboLine">CHAIN KILLS</div><div id="relicLine">RELICS 0/3</div><div id="chemistryLine">🔥?  ❄️?  ⚡?</div><div id="masteryLine"></div>
+      <div id="progressTrack"><div id="progressFill"></div></div><strong id="progressText">0%</strong><div id="wonderLine"></div>
+      <div id="bossPanel" hidden><div class="boss-heading"><span id="bossName">Boss</span><small>BOSS</small></div><div id="bossTrack"><div id="bossFill"></div></div></div>
+    </section>
+
+    <section id="builderTray" class="glass" hidden aria-label="Inventor workshop">
+      <div class="builder-title"><strong>INVENTOR LAB</strong><span>tap a part, then tap the world</span></div>
+      <div class="builder-parts">
+        <button class="build-part-choice selected" data-part="block">🧱<small>Block</small></button><button class="build-part-choice" data-part="wheel">⚙️<small>Wheel</small></button><button class="build-part-choice" data-part="rocket">🚀<small>Rocket</small></button><button id="machineBtn">GO</button><button id="clearBuildBtn">Clear</button><button id="closeBuildBtn">×</button>
+      </div>
+    </section>
+
+    <section id="controls">
+      <div id="joystick" class="glass" aria-label="Movement joystick"><div id="joystickKnob"></div></div>
+      <div id="actionButtons"><button id="jumpBtn" class="action-button">JUMP</button><button id="powerBtn" class="action-button power">THROW 🔥</button><button id="toolBtn" class="action-button secondary">USE TOOL</button></div>
+    </section>
+
+    <dialog id="heroDialog" class="creator-dialog"><form method="dialog" id="heroForm"><h2>Create your explorer</h2><label>Name<input id="heroName" maxlength="16" value="Tomás" /></label><div class="two-col"><label>Kind<select id="heroType"><option value="hero">Superhero</option><option value="robot">Robot</option><option value="alien">Alien</option></select></label><label>Helmet<select id="heroHelmet"><option value="visor">Visor</option><option value="antenna">Antenna</option><option value="open">Open</option></select></label><label>Suit color<input id="heroColor" type="color" value="#3b82f6" /></label><label>Accent<input id="heroAccent" type="color" value="#facc15" /></label><label>Emblem<select id="heroEmblem"><option value="star">Star</option><option value="bolt">Lightning</option><option value="planet">Planet</option></select></label><label class="check"><input id="heroCape" type="checkbox" checked /> Cape</label></div><menu><button value="cancel">Cancel</button><button id="saveHeroBtn" value="default">Save hero</button></menu></form></dialog>
+
+    <dialog id="shipDialog" class="creator-dialog"><form method="dialog" id="shipForm"><h2>Build your vehicle</h2><label>Name<input id="shipName" maxlength="16" value="Comet" /></label><div class="two-col"><label>Hull<select id="shipHull"><option value="rocket">Rocket</option><option value="saucer">Saucer</option><option value="rover">Rover</option></select></label><label>Wings<select id="shipWings"><option value="swept">Swept</option><option value="wide">Wide</option><option value="fins">Fins</option></select></label><label>Body color<input id="shipColor" type="color" value="#ef4444" /></label><label>Trim<input id="shipAccent" type="color" value="#e5e7eb" /></label></div><menu><button value="cancel">Cancel</button><button id="saveShipBtn" value="default">Save ship</button></menu></form></dialog>
+
+    <div id="toast" role="status" aria-live="polite"></div>
+  </main>
+
+  <script src="./vendor/matter.min.js?v=18"></script>
+  <script>
+    (async () => {
+      const build = "18";
+      try {
+        if (localStorage.getItem("family-adventure-build") !== build) {
+          if ("serviceWorker" in navigator) { const registrations = await navigator.serviceWorker.getRegistrations(); await Promise.all(registrations.map(registration => registration.unregister())); }
+          if ("caches" in window) { const keys = await caches.keys(); await Promise.all(keys.map(key => caches.delete(key))); }
+          localStorage.setItem("family-adventure-build", build);
+        }
+      } catch { }
+      const script = document.createElement("script"); script.type = "module"; script.src = "./app-v18.js?v=18"; document.body.appendChild(script);
+    })();
+  </script>
+</body>
+</html>
