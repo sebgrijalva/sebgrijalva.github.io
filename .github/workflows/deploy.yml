@@ -35,6 +35,17 @@ jobs:
       - name: Expand v17 gameplay overlay
         run: base64 --decode v17-overlay.tar.gz.b64 | tar -xzf -
 
+      - name: Inspect v17 overlay
+        run: |
+          echo '=== generated files ==='
+          find . -maxdepth 2 -type f | sort
+          echo '=== app imports ==='
+          head -n 18 app.js
+          echo '=== exported classes ==='
+          grep -R "export class" -n --include='*.js' . | head -n 40
+          echo '=== package test ==='
+          cat package.json
+
       - name: Install pinned Matter.js
         run: npm install --ignore-scripts --no-audit --no-fund
 
