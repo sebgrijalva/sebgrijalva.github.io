@@ -35,21 +35,17 @@ jobs:
       - name: Expand v17 gameplay overlay
         run: base64 --decode v17-overlay.tar.gz.b64 | tar -xzf -
 
-      - name: Inspect v17 overlay
+      - name: Activate v18 source
         run: |
-          echo '=== generated files ==='
-          find . -maxdepth 2 -type f | sort
-          echo '=== app imports ==='
-          head -n 18 app.js
-          echo '=== exported classes ==='
-          grep -R "export class" -n --include='*.js' . | head -n 40
-          echo '=== package test ==='
-          cat package.json
+          cp index-v18.html index.html
+          cp sw-v18.js sw.js
+          cp manifest-v18.webmanifest manifest.webmanifest
+          cp package-v18.json package.json
 
       - name: Install pinned Matter.js
         run: npm install --ignore-scripts --no-audit --no-fund
 
-      - name: Run Matter.js smoke test
+      - name: Run v18 Matter.js gameplay test
         run: npm test
 
       - name: Build static site
@@ -62,6 +58,10 @@ jobs:
             --exclude='node_modules' \
             --exclude='tests' \
             --exclude='*.gz.b64' \
+            --exclude='index-v18.html' \
+            --exclude='sw-v18.js' \
+            --exclude='manifest-v18.webmanifest' \
+            --exclude='package-v18.json' \
             ./ _site/
           cp node_modules/matter-js/build/matter.min.js _site/vendor/matter.min.js
           test -s _site/vendor/matter.min.js
