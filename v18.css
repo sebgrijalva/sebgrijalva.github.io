@@ -1,0 +1,50 @@
+/* v18: invention lab, chemistry, relic mastery */
+#buildBtn.active { background: #6ee7b7 !important; color: #064e3b; outline: 3px solid rgba(5,150,105,.25); }
+#relicLine, #chemistryLine, #masteryLine { margin-top: 5px; text-align: center; font-weight: 950; letter-spacing: .07em; }
+#relicLine { font-size: 10px; color: #fde68a; }
+#relicLine.complete { color: #facc15; text-shadow: 0 0 12px rgba(250,204,21,.7); }
+#chemistryLine { font-size: 12px; letter-spacing: .16em; }
+#masteryLine { min-height: 12px; font-size: 9px; color: #fde047; opacity: 0; transition: opacity .2s ease; }
+#masteryLine.active { opacity: 1; text-shadow: 0 0 12px rgba(253,224,71,.7); }
+#builderTray {
+  left: 50%;
+  bottom: max(16px, calc(env(safe-area-inset-bottom) + 146px));
+  transform: translateX(-50%);
+  width: min(calc(100% - 24px), 520px);
+  padding: 9px 10px;
+  border-radius: 18px;
+  color: #ecfdf5;
+  background: rgba(6,78,59,.9);
+  border-color: rgba(167,243,208,.42);
+  z-index: 16;
+}
+#builderTray[hidden] { display: none; }
+.builder-title { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 7px; }
+.builder-title strong { font-size: 12px; letter-spacing: .08em; }
+.builder-title span { font-size: 9px; opacity: .72; }
+.builder-parts { display: flex; gap: 6px; align-items: stretch; overflow-x: auto; scrollbar-width: none; }
+.builder-parts::-webkit-scrollbar { display: none; }
+.build-part-choice, #machineBtn, #clearBuildBtn, #closeBuildBtn {
+  flex: 0 0 auto;
+  min-width: 62px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.92);
+  display: grid;
+  grid-template-columns: 23px 1fr;
+  align-items: center;
+  padding: 3px 7px;
+  font-size: 18px;
+}
+.build-part-choice small { font-size: 9px; }
+.build-part-choice.selected { outline: 3px solid rgba(52,211,153,.52); background: #ecfdf5; }
+#machineBtn, #clearBuildBtn, #closeBuildBtn { display: block; min-width: 54px; font-size: 11px; }
+#machineBtn { background: #facc15; color: #422006; }
+#machineBtn.running { background: #fb7185; color: #4c0519; box-shadow: 0 0 16px rgba(251,113,133,.55); }
+#clearBuildBtn { background: #dbeafe; color: #1e3a8a; }
+#closeBuildBtn { min-width: 42px; background: rgba(255,255,255,.22); color: #fff; font-size: 22px; }
+@media (max-width: 480px) {
+  #builderTray { bottom: max(12px, calc(env(safe-area-inset-bottom) + 126px)); }
+  .builder-title span { display: none; }
+  .build-part-choice { min-width: 58px; }
+}
