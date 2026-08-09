@@ -1,0 +1,16 @@
+{
+  "id": "/",
+  "name": "Tomás Adventure Lab",
+  "short_name": "Adventure Lab",
+  "description": "A side-scrolling Matter.js adventure with buildable machines, elemental world chemistry, hidden relics, bosses, powers, and persistent mastery.",
+  "start_url": "./?v=18",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#172033",
+  "theme_color": "#172033",
+  "orientation": "any",
+  "prefer_related_applications": false,
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
