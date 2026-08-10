@@ -35,27 +35,83 @@ jobs:
       - name: Expand v17 gameplay overlay
         run: base64 --decode v17-overlay.tar.gz.b64 | tar -xzf -
 
-      - name: Activate v18 source
+      - name: Activate v18 gameplay base
         run: |
           cp index-v18.html index.html
           cp sw-v18.js sw.js
           cp manifest-v18.webmanifest manifest.webmanifest
           cp package-v18.json package.json
 
-      - name: Expand v19 cinematic graphics overlay
-        run: base64 --decode v19-overlay.tar.gz.b64 | tar -xzf -
+      - name: Expand v19 visual patch
+        run: base64 --decode visual-v19.js.gz.b64 | gzip --decompress > visual-v19.js
 
-      - name: Activate v19 source
+      - name: Activate v19 graphics build
         run: |
-          cp index-v19.html index.html
-          cp sw-v19.js sw.js
-          cp package-v19.json package.json
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('index.html')
+          text = p.read_text()
+          text = text.replace('v18.css?v=18', 'v18.css?v=19')
+          text = text.replace('./vendor/matter.min.js?v=18', './vendor/matter.min.js?v=19')
+          text = text.replace('const build = "18"', 'const build = "19"')
+          text = text.replace('./app-v18.js?v=18', './app-v19.js?v=19')
+          p.write_text(text)
+
+          p = Path('sw.js')
+          text = p.read_text()
+          text = text.replace('family-adventure-v18', 'family-adventure-v19')
+          text = text.replace('./?v=18', './?v=19')
+          text = text.replace('v18.css?v=18', 'v18.css?v=19')
+          text = text.replace('"./app-v18.js?v=18",', '"./app-v19.js?v=19",\n  "./app-v18.js?v=18",\n  "./visual-v19.js?v=19",')
+          text = text.replace('matter.min.js?v=18', 'matter.min.js?v=19')
+          p.write_text(text)
+          PY
 
       - name: Install pinned Matter.js
         run: npm install --ignore-scripts --no-audit --no-fund
 
-      - name: Run v19 Matter.js graphics test
+      - name: Run v18 gameplay regression test
         run: npm test
+
+      - name: Run v19 graphics smoke test
+        run: |
+          node --check visual-v19.js
+          node --input-type=module <<'NODE'
+          import MatterPackage from 'matter-js';
+          globalThis.Matter = MatterPackage;
+          const { PlatformerScene } = await import('./platformer-v18.js?graphics-smoke=19');
+          const { applyV19Graphics } = await import('./visual-v19.js?graphics-smoke=19');
+          const memory = new Map();
+          const engine = {
+            store: { get(k,f){ return memory.has(k) ? memory.get(k) : f; }, set(k,v){ memory.set(k,v); } },
+            pointer: { on() {} },
+            audio: { unlock() {}, ping() {} }
+          };
+          const scene = new PlatformerScene();
+          scene.resize(900, 650, 1);
+          scene.mount(engine);
+          applyV19Graphics(scene);
+          if (scene.visualVersion !== 19) throw new Error('v19 patch did not apply');
+          const gradient = { addColorStop() {} };
+          const ctx = new Proxy({}, {
+            get(target, prop) {
+              if (prop === 'createLinearGradient' || prop === 'createRadialGradient') return () => gradient;
+              if (prop === 'measureText') return () => ({ width: 0 });
+              if (!(prop in target)) target[prop] = () => {};
+              return target[prop];
+            },
+            set(target, prop, value) { target[prop] = value; return true; }
+          });
+          scene.drawSky(ctx);
+          scene.drawFarWorld(ctx);
+          scene.drawGroundMass(ctx);
+          scene.drawHero(ctx, scene.hero, scene.heroConfig, true);
+          scene.drawShip(ctx, scene.ship, scene.shipConfig, false);
+          const enemy = scene.villains.find(v => !v.isBoss);
+          if (enemy) scene.drawVillain(ctx, enemy);
+          console.log('v19 graphics smoke test passed');
+          NODE
 
       - name: Build static site
         run: |
@@ -67,16 +123,16 @@ jobs:
             --exclude='node_modules' \
             --exclude='tests' \
             --exclude='*.gz.b64' \
+            --exclude='v19-overlay.part*' \
             --exclude='index-v18.html' \
             --exclude='sw-v18.js' \
             --exclude='manifest-v18.webmanifest' \
             --exclude='package-v18.json' \
-            --exclude='index-v19.html' \
-            --exclude='sw-v19.js' \
-            --exclude='package-v19.json' \
             ./ _site/
           cp node_modules/matter-js/build/matter.min.js _site/vendor/matter.min.js
           test -s _site/vendor/matter.min.js
+          test -s _site/visual-v19.js
+          test -s _site/app-v19.js
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
