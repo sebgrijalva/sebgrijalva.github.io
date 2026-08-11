@@ -24,6 +24,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Verify v20 bundle chunks
+        run: |
+          echo '8e4bf85e9997941ad3de3bb7f80d54d5e263b855ae7261eddb384ff05f5079a8  v20-parts/part00' | sha256sum -c
+          echo '509ecf327ea14982f14106a47e4e22b6f38a2bdeeaa699f21028c26b94d838b6  v20-parts/part01' | sha256sum -c
+          echo 'b38cc518e06e9b664d25029a3fba7890e420209c4fc2e56ca311e961007c739b  v20-parts/part02' | sha256sum -c
+          echo 'bb57446d97e75bfb676c9f071624a9b61c5b67255515cdcf6d8e701a79a8a787  v20-parts/part03' | sha256sum -c
+          echo '1edb24db813cc4d6a21f04f9a081c705231ce3e4c079ce3f07ad350f931adc1b  v20-parts/part04' | sha256sum -c
+          echo 'eb670c3c2ec8caedf5826aabf21a8b25d97d5172f2b08f29bb7e011e7166eade  v20-parts/part05' | sha256sum -c
+
       - name: Reassemble and expand v20 pixel site
         run: |
           cat v20-parts/part00 v20-parts/part01 v20-parts/part02 v20-parts/part03 v20-parts/part04 v20-parts/part05 > /tmp/v20-site.b64
@@ -54,7 +63,6 @@ jobs:
           Path('/tmp/v20-game.js').write_text(scripts[-1])
           PY
           node --check /tmp/v20-game.js
-          echo 'v20 pixel build smoke test passed'
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
