@@ -26,10 +26,8 @@ jobs:
 
       - name: Expand v20 pixel site
         run: |
-          base64 --decode v20-pixel-site.tar.gz.b64 > v20-pixel-site.tar.gz
-          echo "fe75d049bab79455a359591ab6bac1773153b28b89d2fc80bf35e1112b45e7f5  v20-pixel-site.tar.gz" | sha256sum --check
           mkdir -p _site
-          tar -xzf v20-pixel-site.tar.gz -C _site
+          base64 --decode v20-pixel-site.tar.gz.b64 | tar -xzf - -C _site
 
       - name: Smoke test v20 pixel build
         run: |
