@@ -24,51 +24,145 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Verify v20 bundle chunks
-        run: |
-          sha256sum -c <<'SUMS'
-          8e4bf85e9997941ad3de3bb7f80d54d5e263b855ae7261eddb384ff05f5079a8  v20-parts/part00
-          dc9c4ab4eed3b2c1d445ee7a54c57ed8aae46cca1f956dc5c291ec9ef65f40b4  v20-parts/part010
-          9d6872228f0110ec1acf3a0952d8f9b34eaf594e46f80f94a9025c653f226414  v20-parts/part011
-          7df1b608ab2b2e1dfddf35b08f053e338aa3f8989012c43f006a1376b70d4b14  v20-parts/part012
-          44acc0d7aaeb822cad7cc957a65fe4429022390dc8916c13744ac10f05f32a44  v20-parts/part013
-          b38cc518e06e9b664d25029a3fba7890e420209c4fc2e56ca311e961007c739b  v20-parts/part02
-          bb57446d97e75bfb676c9f071624a9b61c5b67255515cdcf6d8e701a79a8a787  v20-parts/part03
-          1edb24db813cc4d6a21f04f9a081c705231ce3e4c079ce3f07ad350f931adc1b  v20-parts/part04
-          eb670c3c2ec8caedf5826aabf21a8b25d97d5172f2b08f29bb7e011e7166eade  v20-parts/part05
-          SUMS
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
 
-      - name: Reassemble and expand v20 pixel site
-        run: |
-          cat v20-parts/part00 v20-parts/part010 v20-parts/part011 v20-parts/part012 v20-parts/part013 v20-parts/part02 v20-parts/part03 v20-parts/part04 v20-parts/part05 > /tmp/v20-site.b64
-          test "$(wc -c < /tmp/v20-site.b64)" -eq 14096
-          mkdir -p _site
-          base64 --decode /tmp/v20-site.b64 | tar -xzf - -C _site
+      - name: Expand v16 platformer source
+        run: base64 --decode platformer-v16.js.gz.b64 | gzip --decompress > platformer-v16.js
 
-      - name: Smoke test v20 pixel build
+      - name: Expand v17 gameplay overlay
+        run: base64 --decode v17-overlay.tar.gz.b64 | tar -xzf -
+
+      - name: Activate v18 full gameplay base
         run: |
-          test -s _site/index.html
-          test -s _site/manifest.webmanifest
-          test -s _site/sw.js
-          test -s _site/icons/icon.svg
-          grep -q 'Tomás Pixel Quest' _site/index.html
-          grep -q 'canvas id="game" width="320" height="180"' _site/index.html
-          grep -q 'image-rendering: pixelated' _site/index.html
-          grep -q 'KILLS' _site/index.html
-          grep -q 'skeleton' _site/index.html
-          grep -q 'monster' _site/index.html
-          grep -q 'tomas-pixel-quest-v20' _site/sw.js
+          cp index-v18.html index.html
+          cp sw-v18.js sw.js
+          cp manifest-v18.webmanifest manifest.webmanifest
+          cp package-v18.json package.json
+
+      - name: Expand v19 cinematic renderer
+        run: base64 --decode visual-v19.js.gz.b64 | gzip --decompress > visual-v19.js
+
+      - name: Activate v21 HD-2D pixel art build
+        run: |
           python3 - <<'PY'
           from pathlib import Path
-          import re
-          html = Path('_site/index.html').read_text()
-          scripts = re.findall(r'<script>([\s\S]*?)</script>', html)
-          if not scripts:
-              raise SystemExit('No inline game script found')
-          Path('/tmp/v20-game.js').write_text(scripts[-1])
+
+          p = Path('index.html')
+          text = p.read_text()
+          text = text.replace('v18.css?v=18', 'v18.css?v=21')
+          text = text.replace('</head>', '  <link rel="stylesheet" href="v21.css?v=21" />\n</head>')
+          text = text.replace('./vendor/matter.min.js?v=18', './vendor/matter.min.js?v=21')
+          text = text.replace('const build = "18"', 'const build = "21"')
+          text = text.replace('./app-v18.js?v=18', './app-v21.js?v=21')
+          p.write_text(text)
+
+          p = Path('sw.js')
+          text = p.read_text()
+          text = text.replace('family-adventure-v18', 'family-adventure-v21')
+          text = text.replace('./?v=18', './?v=21')
+          text = text.replace('v18.css?v=18', 'v18.css?v=21')
+          text = text.replace('"./app-v18.js?v=18",', '"./app-v21.js?v=21",\n  "./app-v19.js?v=19",\n  "./app-v18.js?v=18",\n  "./visual-v21.js?v=21",\n  "./visual-v19.js?v=19",\n  "./v21.css?v=21",')
+          text = text.replace('matter.min.js?v=18', 'matter.min.js?v=21')
+          p.write_text(text)
+
+          p = Path('manifest.webmanifest')
+          text = p.read_text().replace('./?v=18', './?v=21')
+          text = text.replace('"background_color": "#172033"', '"background_color": "#101028"')
+          text = text.replace('"theme_color": "#172033"', '"theme_color": "#101028"')
+          p.write_text(text)
           PY
-          node --check /tmp/v20-game.js
-          echo 'v20 pixel build smoke test passed'
+
+      - name: Install pinned Matter.js
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Run full gameplay regression suite
+        run: npm test
+
+      - name: Run v21 art integration test
+        run: |
+          node --check visual-v19.js
+          node --check visual-v21.js
+          node --check app-v21.js
+          node --input-type=module <<'NODE'
+          import MatterPackage from 'matter-js';
+          globalThis.Matter = MatterPackage;
+          const { PlatformerScene } = await import('./platformer-v18.js?art-smoke=21');
+          const { applyV19Graphics } = await import('./visual-v19.js?art-smoke=21');
+          const { applyV21PixelArt } = await import('./visual-v21.js?art-smoke=21');
+          const memory = new Map();
+          const engine = {
+            store: { get(k,f){ return memory.has(k) ? memory.get(k) : f; }, set(k,v){ memory.set(k,v); } },
+            pointer: { on() {} },
+            audio: { unlock() {}, ping() {} }
+          };
+          const scene = new PlatformerScene();
+          scene.resize(900, 650, 1);
+          scene.mount(engine);
+          applyV19Graphics(scene);
+          applyV21PixelArt(scene);
+          if (scene.visualVersion !== 21) throw new Error('v21 art patch did not apply');
+          if (!scene.villains?.length) throw new Error('villains missing after v21 art patch');
+          if (!scene.hero || !scene.ship) throw new Error('hero/ship missing after v21 art patch');
+          const gradient = { addColorStop() {} };
+          const ctx = new Proxy({}, {
+            get(target, prop) {
+              if (prop === 'createLinearGradient' || prop === 'createRadialGradient') return () => gradient;
+              if (prop === 'measureText') return () => ({ width: 0 });
+              if (!(prop in target)) target[prop] = () => {};
+              return target[prop];
+            },
+            set(target, prop, value) { target[prop] = value; return true; }
+          });
+          scene.drawSky(ctx);
+          scene.drawFarWorld(ctx);
+          scene.drawGroundMass(ctx);
+          scene.drawHero(ctx, scene.hero, scene.heroConfig, true);
+          scene.drawShip(ctx, scene.ship, scene.shipConfig, false);
+          const enemy = scene.villains.find(v => !v.isBoss) || scene.villains[0];
+          if (enemy) scene.drawVillain(ctx, enemy);
+          console.log('v21 full-game art integration test passed');
+          NODE
+
+      - name: Verify full-feature UI survived
+        run: |
+          grep -q 'id="builderTray"' index.html
+          grep -q 'id="movementBadges"' index.html
+          grep -q 'id="killCount"' index.html
+          grep -q 'id="heroDialog"' index.html
+          grep -q 'id="shipDialog"' index.html
+          grep -q 'data-power="fire"' index.html
+          grep -q 'data-power="ice"' index.html
+          grep -q 'data-power="lightning"' index.html
+          grep -q 'app-v21.js?v=21' index.html
+          grep -q 'v21.css?v=21' index.html
+
+      - name: Build static site
+        run: |
+          mkdir -p _site/vendor
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='_site' \
+            --exclude='node_modules' \
+            --exclude='tests' \
+            --exclude='*.gz.b64' \
+            --exclude='v20-parts' \
+            --exclude='v20-pixel-site.tar.gz.b64' \
+            --exclude='v19-overlay.part*' \
+            --exclude='index-v18.html' \
+            --exclude='sw-v18.js' \
+            --exclude='manifest-v18.webmanifest' \
+            --exclude='package-v18.json' \
+            ./ _site/
+          cp node_modules/matter-js/build/matter.min.js _site/vendor/matter.min.js
+          test -s _site/vendor/matter.min.js
+          test -s _site/visual-v19.js
+          test -s _site/visual-v21.js
+          test -s _site/app-v21.js
+          test -s _site/v21.css
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
