@@ -26,16 +26,21 @@ jobs:
 
       - name: Verify v20 bundle chunks
         run: |
-          echo '8e4bf85e9997941ad3de3bb7f80d54d5e263b855ae7261eddb384ff05f5079a8  v20-parts/part00' | sha256sum -c
-          echo '509ecf327ea14982f14106a47e4e22b6f38a2bdeeaa699f21028c26b94d838b6  v20-parts/part01' | sha256sum -c
-          echo 'b38cc518e06e9b664d25029a3fba7890e420209c4fc2e56ca311e961007c739b  v20-parts/part02' | sha256sum -c
-          echo 'bb57446d97e75bfb676c9f071624a9b61c5b67255515cdcf6d8e701a79a8a787  v20-parts/part03' | sha256sum -c
-          echo '1edb24db813cc4d6a21f04f9a081c705231ce3e4c079ce3f07ad350f931adc1b  v20-parts/part04' | sha256sum -c
-          echo 'eb670c3c2ec8caedf5826aabf21a8b25d97d5172f2b08f29bb7e011e7166eade  v20-parts/part05' | sha256sum -c
+          sha256sum -c <<'SUMS'
+          8e4bf85e9997941ad3de3bb7f80d54d5e263b855ae7261eddb384ff05f5079a8  v20-parts/part00
+          dc9c4ab4eed3b2c1d445ee7a54c57ed8aae46cca1f956dc5c291ec9ef65f40b4  v20-parts/part010
+          9d6872228f0110ec1acf3a0952d8f9b34eaf594e46f80f94a9025c653f226414  v20-parts/part011
+          7df1b608ab2b2e1dfddf35b08f053e338aa3f8989012c43f006a1376b70d4b14  v20-parts/part012
+          44acc0d7aaeb822cad7cc957a65fe4429022390dc8916c13744ac10f05f32a44  v20-parts/part013
+          b38cc518e06e9b664d25029a3fba7890e420209c4fc2e56ca311e961007c739b  v20-parts/part02
+          bb57446d97e75bfb676c9f071624a9b61c5b67255515cdcf6d8e701a79a8a787  v20-parts/part03
+          1edb24db813cc4d6a21f04f9a081c705231ce3e4c079ce3f07ad350f931adc1b  v20-parts/part04
+          eb670c3c2ec8caedf5826aabf21a8b25d97d5172f2b08f29bb7e011e7166eade  v20-parts/part05
+          SUMS
 
       - name: Reassemble and expand v20 pixel site
         run: |
-          cat v20-parts/part00 v20-parts/part01 v20-parts/part02 v20-parts/part03 v20-parts/part04 v20-parts/part05 > /tmp/v20-site.b64
+          cat v20-parts/part00 v20-parts/part010 v20-parts/part011 v20-parts/part012 v20-parts/part013 v20-parts/part02 v20-parts/part03 v20-parts/part04 v20-parts/part05 > /tmp/v20-site.b64
           test "$(wc -c < /tmp/v20-site.b64)" -eq 14096
           mkdir -p _site
           base64 --decode /tmp/v20-site.b64 | tar -xzf - -C _site
@@ -63,6 +68,7 @@ jobs:
           Path('/tmp/v20-game.js').write_text(scripts[-1])
           PY
           node --check /tmp/v20-game.js
+          echo 'v20 pixel build smoke test passed'
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
