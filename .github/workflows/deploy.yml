@@ -24,10 +24,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Expand v20 pixel site
+      - name: Reassemble and expand v20 pixel site
         run: |
+          cat v20-parts/part00 v20-parts/part01 v20-parts/part02 v20-parts/part03 v20-parts/part04 v20-parts/part05 > /tmp/v20-site.b64
+          test "$(wc -c < /tmp/v20-site.b64)" -eq 14096
           mkdir -p _site
-          base64 --decode v20-pixel-site.tar.gz.b64 | tar -xzf - -C _site
+          base64 --decode /tmp/v20-site.b64 | tar -xzf - -C _site
 
       - name: Smoke test v20 pixel build
         run: |
