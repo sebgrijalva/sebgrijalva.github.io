@@ -1,0 +1,22 @@
+/* v21: HD-2D pixel art skin over the full v19 game */
+#toyCanvas { image-rendering: pixelated; image-rendering: crisp-edges; }
+.glass {
+  background: linear-gradient(180deg, rgba(18,22,36,.87), rgba(11,14,25,.82));
+  border: 1px solid rgba(220,236,255,.18);
+  box-shadow: 0 8px 26px rgba(3,5,12,.28), inset 0 1px rgba(255,255,255,.06);
+}
+#statusCard, #scoreCard, #topBar, #builderTray { backdrop-filter: blur(7px) saturate(1.12); }
+#statusCard strong, #scoreCard b, .builder-title strong { text-shadow: 0 2px 0 rgba(0,0,0,.55); }
+.inventory-tool, .power-choice, .badge-choice, #topBar button, #builderTray button {
+  box-shadow: inset 0 -2px rgba(0,0,0,.18), inset 0 1px rgba(255,255,255,.08);
+}
+.inventory-tool.selected, .power-choice.selected, .badge-choice.selected {
+  outline: 2px solid rgba(157,232,255,.52);
+  background: linear-gradient(180deg, rgba(91,164,207,.28), rgba(48,75,115,.26));
+}
+.action-button {
+  border: 1px solid rgba(255,255,255,.16);
+  box-shadow: inset 0 -4px rgba(0,0,0,.18), 0 8px 18px rgba(0,0,0,.22);
+  text-shadow: 0 2px rgba(0,0,0,.35);
+}
+#bossTrack, #progressTrack { overflow: hidden; box-shadow: inset 0 0 0 1px rgba(255,255,255,.09); }
