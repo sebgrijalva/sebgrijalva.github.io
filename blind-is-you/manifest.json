@@ -1,0 +1,11 @@
+{
+  "name": "Blind Is You",
+  "short_name": "Blind Is You",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#15171c",
+  "theme_color": "#15171c",
+  "description": "A visuospatial working-memory puzzle game."
+}
