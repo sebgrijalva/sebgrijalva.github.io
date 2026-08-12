@@ -1,0 +1,20 @@
+/* v22: bigger pixel-art emphasis and boss celebration polish */
+#toyCanvas { image-rendering: pixelated; image-rendering: crisp-edges; }
+#statusCard, #scoreCard, #builderTray, #topBar {
+  border-color: rgba(255, 244, 190, .20);
+  box-shadow: 0 10px 32px rgba(8, 10, 22, .30), inset 0 1px rgba(255,255,255,.08);
+}
+#bossPanel {
+  background: linear-gradient(180deg, rgba(56,22,12,.92), rgba(28,12,8,.86));
+  border: 1px solid rgba(255,196,92,.35);
+  box-shadow: 0 0 0 1px rgba(255,196,92,.14), 0 8px 28px rgba(0,0,0,.30);
+}
+#bossTrack, #progressTrack {
+  background: rgba(7,10,19,.62);
+}
+#bossFill {
+  background: linear-gradient(90deg, #ffcf70, #ff8f4a);
+}
+#topBar button, .action-button, .inventory-tool, .power-choice, .badge-choice, .build-part-choice {
+  text-shadow: 0 2px 0 rgba(0,0,0,.35);
+}
