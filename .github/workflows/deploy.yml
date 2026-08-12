@@ -142,6 +142,14 @@ jobs:
       - name: Build Blind Is You v0.3
         run: python tools/upgrade_biy_v03.py
 
+      - name: Activate Blind Is You v0.4
+        run: |
+          cat tools/blind-is-you-v04.part00.b64 tools/blind-is-you-v04.part01.b64 tools/blind-is-you-v04.part02.b64 tools/blind-is-you-v04.part03.b64 | base64 --decode | gzip --decompress > blind-is-you/index.html
+          grep -q 'data-version="0.4"' blind-is-you/index.html
+          grep -q "var VERSION='0.4'" blind-is-you/index.html
+          grep -q 'function buildDifficultyTable' blind-is-you/index.html
+          grep -q "calibrationPhase='homing'" blind-is-you/index.html
+
       - name: Build static site
         run: |
           mkdir -p _site/vendor
@@ -152,6 +160,7 @@ jobs:
             --exclude='node_modules' \
             --exclude='tests' \
             --exclude='*.gz.b64' \
+            --exclude='*.part*.b64' \
             --exclude='v20-parts' \
             --exclude='v20-pixel-site.tar.gz.b64' \
             --exclude='v19-overlay.part*' \
@@ -166,8 +175,8 @@ jobs:
           test -s _site/visual-v21.js
           test -s _site/app-v21.js
           test -s _site/v21.css
-          grep -q 'data-version="0.3"' _site/blind-is-you/index.html
-          grep -q "var VERSION='0.3'" _site/blind-is-you/index.html
+          grep -q 'data-version="0.4"' _site/blind-is-you/index.html
+          grep -q "var VERSION='0.4'" _site/blind-is-you/index.html
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
