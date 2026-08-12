@@ -139,6 +139,9 @@ jobs:
           grep -q 'app-v21.js?v=21' index.html
           grep -q 'v21.css?v=21' index.html
 
+      - name: Build Blind Is You v0.3
+        run: python tools/upgrade_biy_v03.py
+
       - name: Build static site
         run: |
           mkdir -p _site/vendor
@@ -163,6 +166,8 @@ jobs:
           test -s _site/visual-v21.js
           test -s _site/app-v21.js
           test -s _site/v21.css
+          grep -q 'data-version="0.3"' _site/blind-is-you/index.html
+          grep -q "var VERSION='0.3'" _site/blind-is-you/index.html
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
