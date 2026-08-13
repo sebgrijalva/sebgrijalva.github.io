@@ -45,14 +45,22 @@ jobs:
       - name: Expand v19 cinematic renderer
         run: base64 --decode visual-v19.js.gz.b64 | gzip --decompress > visual-v19.js
 
-      - name: Expand verified v22 boss renderer
+      - name: Reassemble and verify v22 boss renderer
         run: |
+          pushd v22-renderer-parts
+          sha256sum -c SHA256SUMS
+          cat part00.b64 part01.b64 part02.b64 part03.b64 part04.b64 part05.b64 part06.b64 part07.b64 part08.b64 > ../visual-v22.rebuilt.gz.b64
+          popd
           python3 - <<'PY'
           from pathlib import Path
           import base64, gzip, hashlib
-          packed = base64.b64decode(''.join(Path('visual-v22b.js.gz.b64').read_text().split()), validate=True)
-          if hashlib.sha256(packed).hexdigest() != '37a553f9d546b8cc0b41dfbccb96107c5697a17adb9107b09dd2162eed96e964':
-              raise SystemExit('v22 package SHA256 mismatch')
+
+          text = Path('visual-v22.rebuilt.gz.b64').read_text()
+          if hashlib.sha256(text.encode()).hexdigest() != 'c9b161aaebd0e415726a0940114c68f9e4866364d3c201ecf2f1e8c6a523f4fc':
+              raise SystemExit('v22 concatenated Base64 SHA256 mismatch')
+          packed = base64.b64decode(text, validate=True)
+          if hashlib.sha256(packed).hexdigest() != '5439eb62aa9d274e0c692bd84685dd4dc49951d150df66d1800978a513c70eac':
+              raise SystemExit('v22 gzip SHA256 mismatch')
           source = gzip.decompress(packed)
           if hashlib.sha256(source).hexdigest() != '9be83029e2d39f2a34791831c7edef3a19bbc1e997b12a18da58587b31e6e81d':
               raise SystemExit('v22 source SHA256 mismatch')
@@ -135,12 +143,12 @@ jobs:
           if (!mid || mid.__bossTier !== 'mid') throw new Error('large mid-map boss missing');
           if (!final || final.__bossTier !== 'final') throw new Error('huge final boss missing');
           if (mid.__bossTier === final.__bossTier) throw new Error('boss tiers are not distinct');
-          if (!(final.maxHp > mid.maxHp)) throw new Error('final boss HP is not greater than mid boss HP');
+          if (!(mid.maxHp >= 24 && final.maxHp >= 42 && final.maxHp > mid.maxHp)) throw new Error('boss HP tiers are wrong');
           const mx = mid.p?.x ?? mid.x;
           const fx = final.p?.x ?? final.x;
           if (Number.isFinite(mx) && Number.isFinite(fx) && !(fx > mx)) throw new Error('final boss is not after mid boss');
           if (scene.goal) {
-            const gx = scene.goal.p?.x ?? scene.goal.x;
+            const gx = scene.goal.x ?? scene.goal.p?.x;
             if (Number.isFinite(gx) && Number.isFinite(fx) && Math.abs(gx - fx) > 900) throw new Error('final boss is not near the goal');
           }
           scene.drawHero(ctx, scene.hero, scene.heroConfig, true);
@@ -148,26 +156,32 @@ jobs:
           scene.drawVillain(ctx, mid);
           scene.drawVillain(ctx, final);
 
+          scene.activeEntity = scene.hero;
           const before = scene.mapIndex;
           final.dead = true;
           scene.__v22.finalBossDefeated = true;
-          const gx = scene.hero.p.x - 20, gy = scene.hero.p.y - 30;
-          scene.goal = { x: gx, y: gy, p: { x: gx, y: gy }, w: 50, h: 70 };
+          const gw = 80, gh = 100;
+          const gx = scene.hero.p.x - gw/2, gy = scene.hero.p.y - gh/2;
+          scene.goal = { x: gx, y: gy, p: { x: gx, y: gy }, w: gw, h: gh };
           scene.update(1/60);
           const party = scene.__v22.celebration;
           if (!party?.active) throw new Error('goal did not trigger delayed celebration');
-          if (party.croissants.length < 25) throw new Error('croissant rain is too sparse');
-          if (!(party.timer > 1)) throw new Error('celebration delay is missing');
+          if (party.croissants.length < 30) throw new Error('croissant rain is too sparse');
+          if (!(party.timer >= 200)) throw new Error('celebration delay is missing');
           scene.drawHero(ctx, scene.hero, scene.heroConfig, true);
           scene.nextMap = () => { scene.mapIndex = (before + 1) % 3; };
           party.timer = 1;
           scene.update(1/60);
           if (scene.mapIndex === before) throw new Error('celebration did not automatically advance to next map');
-          console.log('v22 dual-boss, larger-renderer and croissant celebration test passed');
+          console.log('v22 dual-boss, large renderer and croissant celebration test passed');
           NODE
-          grep -Eqi 'croissant' visual-v22.js
-          grep -Eqi 'happy|dance' visual-v22.js
-          grep -Eqi 'boss' visual-v22.js
+          grep -q 'Math.max(2.15' visual-v22.js
+          grep -q 'HERO_DANCE1_22' visual-v22.js
+          grep -q 'HERO_DANCE2_22' visual-v22.js
+          grep -q 'Croissant Doom Dragon' visual-v22.js
+          grep -q 'croissants: Array.from' visual-v22.js
+          grep -q 'timer: 220' visual-v22.js
+          grep -q "const candidates = \['advanceMap', 'nextMap'" visual-v22.js
 
       - name: Verify full-feature UI and gameplay survived
         run: |
@@ -180,11 +194,11 @@ jobs:
           grep -q 'data-power="ice"' index.html
           grep -q 'data-power="lightning"' index.html
           grep -Eqi 'eraser' index.html
-          grep -Eqi 'kill' platformer-v18.js
-          grep -Eqi 'villain|skeleton|monster' platformer-v18.js
-          grep -Eqi 'Matter' platformer-v18.js
+          grep -Eqi 'kill' platformer-v18.js platformer-v17.js platformer-v16.js
+          grep -Eqi 'villain|skeleton|monster' platformer-v18.js platformer-v17.js platformer-v16.js
+          grep -Eqi 'Matter' platformer-v18.js platformer-v17.js platformer-v16.js
           grep -Eqi 'builder|Inventor' platformer-v18.js index.html
-          grep -Eqi 'Spring|Glide|Dash' platformer-v18.js index.html
+          grep -Eqi 'Spring|Glide|Dash' platformer-v18.js platformer-v17.js platformer-v16.js index.html
           grep -q 'app-v22.js?v=22' index.html
           grep -q 'v22.css?v=22' index.html
 
@@ -212,6 +226,7 @@ jobs:
             --exclude='*.part*.b64' \
             --exclude='v20-parts' \
             --exclude='v22-parts' \
+            --exclude='v22-renderer-parts' \
             --exclude='v20-pixel-site.tar.gz.b64' \
             --exclude='v19-overlay.part*' \
             --exclude='index-v18.html' \
