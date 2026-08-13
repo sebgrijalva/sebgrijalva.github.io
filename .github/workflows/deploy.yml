@@ -45,31 +45,93 @@ jobs:
       - name: Expand v19 cinematic renderer
         run: base64 --decode visual-v19.js.gz.b64 | gzip --decompress > visual-v19.js
 
-      - name: Activate v21 HD-2D pixel art build
+      - name: Recover and validate v22 boss renderer
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64, gzip, hashlib, struct, zlib
+
+          candidates = [
+              Path('visual-v22c.js.gz.b64'),
+              Path('visual-v22b.js.gz.b64'),
+              Path('visual-v22.js.gz.b64'),
+          ]
+          selected = None
+          for path in candidates:
+              if not path.exists():
+                  continue
+              packed = base64.b64decode(''.join(path.read_text().split()), validate=True)
+              print(f'{path}: b64-bytes={len(packed)} sha256={hashlib.sha256(packed).hexdigest()}')
+              try:
+                  source = gzip.decompress(packed)
+              except Exception as exc:
+                  print(f'{path}: strict gzip failed: {exc}')
+                  continue
+              Path('visual-v22.js').write_bytes(source)
+              selected = path.name
+              print(f'{path}: strict gzip OK source-bytes={len(source)} source-sha256={hashlib.sha256(source).hexdigest()}')
+              break
+
+          if selected is None:
+              # The previous connector upload is known to have a broken gzip trailer.
+              # Recover only if the complete raw DEFLATE stream itself is intact.
+              path = Path('visual-v22c.js.gz.b64')
+              packed = base64.b64decode(''.join(path.read_text().split()), validate=True)
+              if packed[:3] != b'\x1f\x8b\x08':
+                  raise SystemExit('v22c is not a gzip stream')
+              flags = packed[3]
+              pos = 10
+              if flags & 4:
+                  xlen = int.from_bytes(packed[pos:pos+2], 'little'); pos += 2 + xlen
+              if flags & 8:
+                  pos = packed.index(b'\0', pos) + 1
+              if flags & 16:
+                  pos = packed.index(b'\0', pos) + 1
+              if flags & 2:
+                  pos += 2
+              dec = zlib.decompressobj(-zlib.MAX_WBITS)
+              source = dec.decompress(packed[pos:]) + dec.flush()
+              if not dec.eof:
+                  raise SystemExit('v22c raw DEFLATE stream is truncated; refusing salvage')
+              trailer = dec.unused_data[:8]
+              actual_crc = zlib.crc32(source) & 0xffffffff
+              actual_size = len(source) & 0xffffffff
+              expected_crc, expected_size = struct.unpack('<II', trailer) if len(trailer) == 8 else (None, None)
+              print(f'v22c raw stream intact: actual-crc={actual_crc:08x} trailer-crc={expected_crc!r} actual-size={actual_size} trailer-size={expected_size!r}')
+              Path('visual-v22.js').write_bytes(source)
+              selected = 'visual-v22c.js.gz.b64(raw-deflate-salvage)'
+              print(f'v22 source recovered: bytes={len(source)} sha256={hashlib.sha256(source).hexdigest()}')
+
+          Path('v22-renderer-selected.txt').write_text(selected + '\n')
+          print('selected renderer:', selected)
+          PY
+          node --check visual-v22.js
+
+      - name: Activate v22 full gameplay build
         run: |
           python3 - <<'PY'
           from pathlib import Path
 
           p = Path('index.html')
           text = p.read_text()
-          text = text.replace('v18.css?v=18', 'v18.css?v=21')
-          text = text.replace('</head>', '  <link rel="stylesheet" href="v21.css?v=21" />\n</head>')
-          text = text.replace('./vendor/matter.min.js?v=18', './vendor/matter.min.js?v=21')
-          text = text.replace('const build = "18"', 'const build = "21"')
-          text = text.replace('./app-v18.js?v=18', './app-v21.js?v=21')
+          text = text.replace('v18.css?v=18', 'v18.css?v=22')
+          text = text.replace('</head>', '  <link rel="stylesheet" href="v21.css?v=21" />\n  <link rel="stylesheet" href="v22.css?v=22" />\n</head>')
+          text = text.replace('./vendor/matter.min.js?v=18', './vendor/matter.min.js?v=22')
+          text = text.replace('const build = "18"', 'const build = "22"')
+          text = text.replace('./app-v18.js?v=18', './app-v22.js?v=22')
           p.write_text(text)
 
           p = Path('sw.js')
           text = p.read_text()
-          text = text.replace('family-adventure-v18', 'family-adventure-v21')
-          text = text.replace('./?v=18', './?v=21')
-          text = text.replace('v18.css?v=18', 'v18.css?v=21')
-          text = text.replace('"./app-v18.js?v=18",', '"./app-v21.js?v=21",\n  "./app-v19.js?v=19",\n  "./app-v18.js?v=18",\n  "./visual-v21.js?v=21",\n  "./visual-v19.js?v=19",\n  "./v21.css?v=21",')
-          text = text.replace('matter.min.js?v=18', 'matter.min.js?v=21')
+          text = text.replace('family-adventure-v18', 'family-adventure-v22')
+          text = text.replace('./?v=18', './?v=22')
+          text = text.replace('v18.css?v=18', 'v18.css?v=22')
+          text = text.replace('"./app-v18.js?v=18",', '"./app-v22.js?v=22",\n  "./app-v19.js?v=19",\n  "./app-v18.js?v=18",\n  "./visual-v22.js?v=22",\n  "./visual-v21.js?v=21",\n  "./visual-v19.js?v=19",\n  "./v21.css?v=21",\n  "./v22.css?v=22",')
+          text = text.replace('matter.min.js?v=18', 'matter.min.js?v=22')
           p.write_text(text)
 
           p = Path('manifest.webmanifest')
-          text = p.read_text().replace('./?v=18', './?v=21')
+          text = p.read_text().replace('./?v=18', './?v=22')
           text = text.replace('"background_color": "#172033"', '"background_color": "#101028"')
           text = text.replace('"theme_color": "#172033"', '"theme_color": "#101028"')
           p.write_text(text)
@@ -81,17 +143,18 @@ jobs:
       - name: Run full gameplay regression suite
         run: npm test
 
-      - name: Run v21 art integration test
+      - name: Run v22 boss and celebration integration test
         run: |
           node --check visual-v19.js
           node --check visual-v21.js
-          node --check app-v21.js
+          node --check visual-v22.js
+          node --check app-v22.js
           node --input-type=module <<'NODE'
           import MatterPackage from 'matter-js';
           globalThis.Matter = MatterPackage;
-          const { PlatformerScene } = await import('./platformer-v18.js?art-smoke=21');
-          const { applyV19Graphics } = await import('./visual-v19.js?art-smoke=21');
-          const { applyV21PixelArt } = await import('./visual-v21.js?art-smoke=21');
+          const { PlatformerScene } = await import('./platformer-v18.js?art-smoke=22');
+          const { applyV19Graphics } = await import('./visual-v19.js?art-smoke=22');
+          const { applyV22BossCelebration } = await import('./visual-v22.js?art-smoke=22');
           const memory = new Map();
           const engine = {
             store: { get(k,f){ return memory.has(k) ? memory.get(k) : f; }, set(k,v){ memory.set(k,v); } },
@@ -102,10 +165,8 @@ jobs:
           scene.resize(900, 650, 1);
           scene.mount(engine);
           applyV19Graphics(scene);
-          applyV21PixelArt(scene);
-          if (scene.visualVersion !== 21) throw new Error('v21 art patch did not apply');
-          if (!scene.villains?.length) throw new Error('villains missing after v21 art patch');
-          if (!scene.hero || !scene.ship) throw new Error('hero/ship missing after v21 art patch');
+          applyV22BossCelebration(scene);
+          if (scene.visualVersion !== 22) throw new Error('v22 art patch did not apply');
           const gradient = { addColorStop() {} };
           const ctx = new Proxy({}, {
             get(target, prop) {
@@ -116,17 +177,46 @@ jobs:
             },
             set(target, prop, value) { target[prop] = value; return true; }
           });
-          scene.drawSky(ctx);
-          scene.drawFarWorld(ctx);
-          scene.drawGroundMass(ctx);
+          scene.render(ctx);
+          const mid = scene.__v22?.midBoss;
+          const final = scene.__v22?.finalBoss;
+          if (!mid || mid.__bossTier !== 'mid') throw new Error('large mid-map boss missing');
+          if (!final || final.__bossTier !== 'final') throw new Error('huge final boss missing');
+          if (mid.__bossTier === final.__bossTier) throw new Error('boss tiers are not distinct');
+          if (!(final.maxHp > mid.maxHp)) throw new Error('final boss HP is not greater than mid boss HP');
+          const mx = mid.p?.x ?? mid.x;
+          const fx = final.p?.x ?? final.x;
+          if (Number.isFinite(mx) && Number.isFinite(fx) && !(fx > mx)) throw new Error('final boss is not after mid boss');
+          if (scene.goal) {
+            const gx = scene.goal.x + (scene.goal.w || 0) / 2;
+            if (Number.isFinite(fx) && Math.abs(gx - fx) > 900) throw new Error('final boss is not near the goal');
+          }
           scene.drawHero(ctx, scene.hero, scene.heroConfig, true);
           scene.drawShip(ctx, scene.ship, scene.shipConfig, false);
-          const enemy = scene.villains.find(v => !v.isBoss) || scene.villains[0];
-          if (enemy) scene.drawVillain(ctx, enemy);
-          console.log('v21 full-game art integration test passed');
-          NODE
+          scene.drawVillain(ctx, mid);
+          scene.drawVillain(ctx, final);
 
-      - name: Verify full-feature UI survived
+          const before = scene.mapIndex;
+          final.dead = true;
+          scene.__v22.finalBossDefeated = true;
+          scene.goal = { x: scene.hero.p.x - 20, y: scene.hero.p.y - 30, w: 50, h: 70 };
+          scene.update(1/60);
+          const party = scene.__v22.celebration;
+          if (!party?.active) throw new Error('goal did not trigger delayed celebration');
+          if (party.croissants.length < 25) throw new Error('croissant rain is too sparse');
+          if (!(party.timer > 1)) throw new Error('celebration delay is missing');
+          scene.drawHero(ctx, scene.hero, scene.heroConfig, true);
+          scene.nextMap = () => { scene.mapIndex = (before + 1) % 3; };
+          party.timer = 1;
+          scene.update(1/60);
+          if (scene.mapIndex === before) throw new Error('celebration did not automatically advance to next map');
+          console.log('v22 dual-boss, larger-renderer and croissant celebration test passed');
+          NODE
+          grep -Eqi 'croissant' visual-v22.js
+          grep -Eqi 'happy|dance' visual-v22.js
+          grep -Eqi 'boss' visual-v22.js
+
+      - name: Verify full-feature UI and gameplay survived
         run: |
           grep -q 'id="builderTray"' index.html
           grep -q 'id="movementBadges"' index.html
@@ -136,8 +226,14 @@ jobs:
           grep -q 'data-power="fire"' index.html
           grep -q 'data-power="ice"' index.html
           grep -q 'data-power="lightning"' index.html
-          grep -q 'app-v21.js?v=21' index.html
-          grep -q 'v21.css?v=21' index.html
+          grep -Eqi 'eraser' index.html
+          grep -Eqi 'kill' platformer-v18.js
+          grep -Eqi 'villain|skeleton|monster' platformer-v18.js
+          grep -Eqi 'Matter' platformer-v18.js
+          grep -Eqi 'builder|Inventor' platformer-v18.js index.html
+          grep -Eqi 'Spring|Glide|Dash' platformer-v18.js index.html
+          grep -q 'app-v22.js?v=22' index.html
+          grep -q 'v22.css?v=22' index.html
 
       - name: Build Blind Is You v0.3
         run: python tools/upgrade_biy_v03.py
@@ -162,6 +258,7 @@ jobs:
             --exclude='*.gz.b64' \
             --exclude='*.part*.b64' \
             --exclude='v20-parts' \
+            --exclude='v22-parts' \
             --exclude='v20-pixel-site.tar.gz.b64' \
             --exclude='v19-overlay.part*' \
             --exclude='index-v18.html' \
@@ -173,8 +270,10 @@ jobs:
           test -s _site/vendor/matter.min.js
           test -s _site/visual-v19.js
           test -s _site/visual-v21.js
-          test -s _site/app-v21.js
+          test -s _site/visual-v22.js
+          test -s _site/app-v22.js
           test -s _site/v21.css
+          test -s _site/v22.css
           grep -q 'data-version="0.4"' _site/blind-is-you/index.html
           grep -q "var VERSION='0.4'" _site/blind-is-you/index.html
 
