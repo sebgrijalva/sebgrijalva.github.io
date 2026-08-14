@@ -4,42 +4,20 @@ const W=(x,y,text)=>({id:`nw${++ID}`,kind:'word',x,y,text});
 const O=(x,y,noun,extra={})=>({id:`no${++ID}`,kind:'object',x,y,noun,...extra});
 const F=(x,y,floorType,extra={})=>({id:`nf${++ID}`,kind:'floor',x,y,floorType,...extra});
 const R=(y,a,b,c)=>[W(0,y,a),W(1,y,b),W(2,y,c)];
-const Z=(x=5,y=6)=>O(x,y,'ZERO');
-const fk=(tokens)=>parseFactTokens(tokens)?.key;
-function factBase(id,title,difficulty,required,entities,extra={}){
-  return {id,world:2,title,concept:'fact.authorship',difficulty,width:12,height:8,expansion:'nil',nilCluster:'FACT FORGE',goal:{type:'facts',requiredFacts:required.map(fk)},entities:[...R(0,'ZERO','IS','YOU'),...entities],...extra};
-}
-
-const PAPERWORK=factBase('nil-01-paperwork','PAPERWORK',2,[['TWO','PLUS','TWO','SAME','FOUR']],[
-  W(3,2,'TWO'),W(4,2,'PLUS'),W(6,2,'SAME'),W(7,2,'FOUR'),W(5,5,'TWO'),Z(5,6),
-  F(3,2,'FACT_RAIL'),F(4,2,'FACT_RAIL'),F(5,2,'FACT_RAIL'),F(6,2,'FACT_RAIL'),F(7,2,'FACT_RAIL'),F(9,3,'FACT_LOCK',{label:'1'})
-],{hint:'THE EMPTY PLACE IS PART OF A STATEMENT.',factForgeIndex:1});
-
-const NICE_TRY=factBase('nil-02-nice-try','NICE TRY',2,[['TWO','PLUS','THREE','SAME','FIVE']],[
-  W(3,2,'TWO'),W(4,2,'PLUS'),W(5,2,'THREE'),W(6,2,'SAME'),W(7,5,'FIVE'),W(9,5,'SIX'),Z(7,6),
-  ...[3,4,5,6,7].map(x=>F(x,2,'FACT_RAIL')),F(10,2,'FACT_LOCK',{label:'2'})
-],{hint:'THE WORLD WILL TEST WHATEVER YOU WRITE.',factForgeIndex:2});
-
-const OLD_NEWS=factBase('nil-03-old-news','OLD NEWS',3,[['TWO','PLUS','TWO','SAME','FOUR']],[
-  W(4,2,'PLUS'),W(5,2,'TWO'),W(6,2,'SAME'),W(7,2,'FOUR'),W(3,5,'TWO'),Z(3,6),
-  ...[3,4,5,6,7].map(x=>F(x,2,'FACT_RAIL')),F(9,2,'FACT_LOCK',{label:'3'})
-],{hint:'YOU HAVE WRITTEN THIS RELATION BEFORE.',factForgeIndex:3,recall:true});
-
-const TURN_IT=factBase('nil-04-turn-it-around','TURN IT AROUND',4,[
-  ['THREE','PLUS','FOUR','SAME','SEVEN'],['FOUR','PLUS','THREE','SAME','SEVEN']
-],[
-  W(4,1,'PLUS'),W(5,1,'FOUR'),W(6,1,'SAME'),W(7,1,'SEVEN'),W(3,5,'THREE'),
-  W(8,3,'PLUS'),W(9,3,'THREE'),W(10,3,'SAME'),W(11,3,'SEVEN'),W(7,5,'FOUR'),Z(3,6),
-  ...[3,4,5,6,7].map(x=>F(x,1,'FACT_RAIL')),...[7,8,9,10,11].map(x=>F(x,3,'FACT_RAIL'))
-],{hint:'WRITE THE SAME CROWD IN THE OTHER ORDER.',factForgeIndex:4});
-
-const FAMILY=factBase('nil-05-family-dinner','FAMILY DINNER',5,[
-  ['SEVEN','MINUS','THREE','SAME','FOUR'],['SEVEN','MINUS','FOUR','SAME','THREE']
-],[
-  W(1,2,'SEVEN'),W(2,2,'MINUS'),W(3,2,'THREE'),W(5,2,'FOUR'),W(4,5,'SAME'),Z(4,6),
-  W(7,4,'SEVEN'),W(8,4,'MINUS'),W(9,4,'FOUR'),W(11,4,'THREE'),W(10,6,'SAME'),
-  ...[1,2,3,4,5].map(x=>F(x,2,'FACT_RAIL')),...[7,8,9,10,11].map(x=>F(x,4,'FACT_RAIL')),F(6,2,'FACT_LOCK',{label:'4'})
-],{hint:'THE ADDITION PAGES HAVE SUBTRACTION RELATIVES.',factForgeIndex:5,familyGoal:true});
-
-export const NIL_LEVELS=[PAPERWORK,NICE_TRY,OLD_NEWS,TURN_IT,FAMILY];
+const fk=tokens=>parseFactTokens(tokens)?.key;
+const Z=()=>O(1,7,'ZERO');
+function rail(y,x,tokens,blanks=[]){const b=new Set(blanks),out=[];tokens.forEach((t,i)=>{out.push(F(x+i,y,'FACT_RAIL'));if(!b.has(i))out.push(W(x+i,y,t));});return out;}
+function pieces(items){const spots=[[9,6],[3,6],[10,5],[6,6],[2,5],[8,5],[5,7],[10,7]];return items.map((t,i)=>W(spots[i][0],spots[i][1],t));}
+function factBase(id,title,difficulty,required,entities,extra={}){return {id,world:2,title,concept:'fact.authorship',difficulty,width:12,height:8,expansion:'nil',nilCluster:'FACT FORGE',challengePack:7,reasoningSteps:difficulty>=6?4:3,noStraightPush:true,goal:{type:'facts',requiredFacts:required.map(fk)},entities:[...R(0,'ZERO','IS','YOU'),Z(),...entities],...extra};}
+const PAPERWORK=factBase('nil-01-paperwork','THE MISSING PART',4,[['EIGHT','PLUS','FIVE','SAME','THIRTEEN']],[...rail(2,3,['EIGHT','PLUS','FIVE','SAME','THIRTEEN'],[2]),...pieces(['FOUR','FIVE','SIX'])],{hint:'THIRTEEN IS EIGHT AND SOMETHING. FIND THE SOMETHING.',factForgeIndex:1});
+const NICE_TRY=factBase('nil-02-nice-try','BACKWARDS',4,[['TWELVE','MINUS','FIVE','SAME','SEVEN']],[...rail(2,3,['TWELVE','MINUS','FIVE','SAME','SEVEN'],[2]),...pieces(['FOUR','SIX','FIVE'])],{hint:'USE THE INVERSE RELATION, NOT GUESS-AND-CHECK.',factForgeIndex:2});
+const OLD_NEWS=factBase('nil-03-old-news','NEAR DOUBLE',5,[['SIX','PLUS','SEVEN','SAME','THIRTEEN']],[...rail(2,3,['SIX','PLUS','SEVEN','SAME','THIRTEEN'],[2]),...pieces(['EIGHT','SEVEN','FIVE'])],{hint:'DOUBLE SIX, THEN MOVE ONE.',factForgeIndex:3,recall:true});
+const TURN_IT=factBase('nil-04-turn-it-around','TURN IT AROUND',6,[['THREE','PLUS','FOUR','SAME','SEVEN'],['FOUR','PLUS','THREE','SAME','SEVEN']],[...rail(2,3,['THREE','PLUS','FOUR','SAME','SEVEN'],[0]),...rail(4,3,['FOUR','PLUS','THREE','SAME','SEVEN'],[2]),...pieces(['THREE','FIVE','THREE','TWO'])],{hint:'THE TOTAL DOES NOT CARE WHICH ADDEND ARRIVES FIRST.',factForgeIndex:4});
+const FAMILY=factBase('nil-05-family-dinner','FAMILY DINNER',6,[['SEVEN','MINUS','THREE','SAME','FOUR'],['SEVEN','MINUS','FOUR','SAME','THREE']],[...rail(2,3,['SEVEN','MINUS','THREE','SAME','FOUR'],[2]),...rail(4,3,['SEVEN','MINUS','FOUR','SAME','THREE'],[2]),...pieces(['FIVE','THREE','FOUR','TWO'])],{hint:'ONE ADDITION FAMILY GIVES TWO SUBTRACTIONS.',factForgeIndex:5,familyGoal:true});
+const TWO_WAYS=factBase('nil-06-two-ways','TWELVE, TWICE',6,[['FIVE','PLUS','SEVEN','SAME','TWELVE'],['THREE','TIMES','FOUR','SAME','TWELVE']],[...rail(2,3,['FIVE','PLUS','SEVEN','SAME','TWELVE'],[0]),...rail(4,3,['THREE','TIMES','FOUR','SAME','TWELVE'],[2]),...pieces(['THREE','FIVE','SIX','FOUR'])],{hint:'THE SAME NUMBER CAN HAVE ADDITIVE AND MULTIPLICATIVE STRUCTURE.',factForgeIndex:6});
+const CHAIN=factBase('nil-07-chain','CHAIN REACTION',7,[['EIGHTEEN','MINUS','SEVEN','SAME','ELEVEN'],['ELEVEN','PLUS','SEVEN','SAME','EIGHTEEN']],[...rail(2,3,['EIGHTEEN','MINUS','SEVEN','SAME','ELEVEN'],[2]),...rail(4,3,['ELEVEN','PLUS','SEVEN','SAME','EIGHTEEN'],[2]),...pieces(['SIX','SEVEN','SEVEN','EIGHT'])],{hint:'THE OUTPUT OF ONE RELATION BECOMES THE INPUT OF ITS INVERSE.',factForgeIndex:7});
+const FRACTION=factBase('nil-08-fraction-bridge','FRACTION BRIDGE',7,[['HALF','SAME','TWOQUARTERS'],['QUARTER','PLUS','QUARTER','SAME','HALF']],[...rail(2,4,['HALF','SAME','TWOQUARTERS'],[2]),...rail(4,3,['QUARTER','PLUS','QUARTER','SAME','HALF'],[2]),...pieces(['TWOQUARTERS','HALF','QUARTER','THREE'])],{hint:'CHANGE THE NAME OF THE PIECE WITHOUT CHANGING ITS SIZE.',factForgeIndex:8});
+const PRECEDENCE=factBase('nil-09-precedence','WHICH HAPPENS FIRST?',8,[['TWO','PLUS','THREE','TIMES','FOUR','SAME','FOURTEEN']],[...rail(2,2,['TWO','PLUS','THREE','TIMES','FOUR','SAME','FOURTEEN'],[6]),...pieces(['TWENTY','FOURTEEN','THIRTEEN'])],{hint:'MULTIPLICATION BUILDS ITS CHUNK BEFORE ADDITION JOINS IT.',factForgeIndex:9});
+const DISTRIBUTE=factBase('nil-10-distribute','TWO RECTANGLES',9,[['THREE','TIMES','FOUR','PLUS','THREE','TIMES','TWO','SAME','EIGHTEEN']],[...rail(2,1,['THREE','TIMES','FOUR','PLUS','THREE','TIMES','TWO','SAME','EIGHTEEN'],[8]),...pieces(['SIXTEEN','EIGHTEEN','TWENTY'])],{hint:'TWO RECTANGLES SHARE THE SAME HEIGHT. TOTAL BOTH AREAS.',factForgeIndex:10});
+export const NIL_LEVELS=[PAPERWORK,NICE_TRY,OLD_NEWS,TURN_IT,FAMILY,TWO_WAYS,CHAIN,FRACTION,PRECEDENCE,DISTRIBUTE];
 export const NIL_LEVEL_BY_ID=Object.fromEntries(NIL_LEVELS.map(l=>[l.id,l]));
