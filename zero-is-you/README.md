@@ -1,11 +1,7 @@
-# ZERO IS YOU v5
+# ZERO IS YOU
 
-Phone-first retro math puzzle game. Swipe to move. The v5 build adds a legibility pass and the first NIL IS YOU Fact Book kernel without changing the original 60 ZERO levels.
+A mobile-first retro pixel-art mathematics puzzle game.
 
-Run tests from this directory with:
+Current design target: gifted young learners. Puzzle difficulty should come from mathematical structure and multi-step board manipulation, not flashcard recall or placing the correct tile directly in front of the player.
 
-```bash
-npm test
-```
-
-Deployment target: `https://sebgrijalva.github.io/zero-is-you/` via the repository's existing GitHub Pages workflow.
+Deployment lives at `/zero-is-you/` on GitHub Pages.
