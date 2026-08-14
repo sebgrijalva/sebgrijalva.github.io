@@ -1,0 +1,1 @@
+{"name":"zero-is-you","private":true,"type":"module","scripts":{"test":"node tests/v5.mjs"}}

@@ -1,3 +1,4 @@
+import {parseFactTokens} from './facts.js';
 export const NUM_WORDS = [
   'ZERO','ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE','TEN',
   'ELEVEN','TWELVE','THIRTEEN','FOURTEEN','FIFTEEN','SIXTEEN','SEVENTEEN','EIGHTEEN','NINETEEN','TWENTY'
@@ -25,6 +26,9 @@ export function createState(level) {
     socketValues: {},
     won: false,
     message: '',
+    authoredInLevel: [],
+    factScans: [],
+    factEvents: [],
   };
   applyRules(state, level);
   return state;
@@ -60,6 +64,20 @@ export function scanRuns(state) {
 
 const PROPS = new Set(['YOU','WIN','PUSH','STOP','HOT','SINK','EVEN','ODD','PRIME']);
 const OPS = new Set(['PLUS','MINUS','TIMES','MOD']);
+
+export function scanFactRuns(state){
+  const wm=new Map();for(const e of state.entities)if(e.kind==='word')wm.set(key(e.x,e.y),e);
+  const out=[];
+  const emit=(cells)=>{if(cells.length<3)return;const fact=parseFactTokens(cells.map(c=>c.text));if(fact)out.push({...fact,cells:cells.map(c=>({x:c.x,y:c.y})),signature:cells.map(c=>c.text).join('|')});};
+  for(let y=0;y<state.height;y++){let run=[];for(let x=0;x<=state.width;x++){const e=x<state.width?wm.get(key(x,y)):null;if(e)run.push(e);else{emit(run);run=[];}}}
+  for(let x=0;x<state.width;x++){let run=[];for(let y=0;y<=state.height;y++){const e=y<state.height?wm.get(key(x,y)):null;if(e)run.push(e);else{emit(run);run=[];}}}
+  return out;
+}
+function updateFactScans(state){state.factScans=scanFactRuns(state);return state.factScans;}
+function captureFactEvents(state,previous){
+  const prev=new Set((previous?.factScans||[]).map(f=>f.signature));state.factEvents=(state.factScans||[]).filter(f=>!prev.has(f.signature));
+  for(const f of state.factEvents)if(f.truth&&!state.authoredInLevel.includes(f.key))state.authoredInLevel.push(f.key);
+}
 
 export function scanRules(state) {
   const runs=scanRuns(state);
@@ -145,6 +163,7 @@ export function applyRules(state, level) {
     if(e.kind==='object' && state.transforms[e.noun]) e.noun=state.transforms[e.noun];
   }
   evaluateSockets(state,level);
+  updateFactScans(state);
   return state;
 }
 
@@ -226,6 +245,7 @@ export function stepBaba(inputState, level, dir) {
     state.moves++;
   } else state.event='bump';
   applyRules(state,level);
+  captureFactEvents(state,inputState);
   checkWin(state,level);
   return state;
 }
@@ -310,6 +330,9 @@ export function checkWin(state,level){
   if(goal.type==='placeValue'){
     const tens=atomValue(state.socketValues.tens), ones=atomValue(state.socketValues.ones);
     if(tens!==null&&ones!==null){ state.placeValue=tens*10+ones; if(state.placeValue===goal.target) state.won=true; }
+  }
+  if(goal.type==='facts'){
+    const req=goal.requiredFacts??[];if(req.length&&req.every(k=>state.authoredInLevel.includes(k)))state.won=true;
   }
   if(goal.type==='graphAllEdges'){
     if(state.graphUsed.length===level.graph.edges.length) state.won=true;

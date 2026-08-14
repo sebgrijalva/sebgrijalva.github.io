@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-  <meta name="theme-color" content="#1a1c2c">
+  <meta name="theme-color" content="#090b12">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>ZERO IS YOU</title>
-  <link rel="manifest" href="./manifest.webmanifest?v=4">
+  <link rel="manifest" href="./manifest.webmanifest?v=5">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=4">
+  <link rel="stylesheet" href="./style.css?v=5">
 </head>
 <body>
   <main id="shell">
@@ -21,23 +21,17 @@
       <button id="parent" class="chip parent">PARENT</button>
     </div>
     <div id="screenwrap"><canvas id="game" width="192" height="224" aria-label="Zero Is You game board"></canvas></div>
-    <div id="controls">
-      <div id="dpad" class="dpad hidden" aria-label="direction controls">
-        <button data-dir="U" class="up">▲</button>
-        <button data-dir="L" class="left">◀</button>
-        <button data-dir="R" class="right">▶</button>
-        <button data-dir="D" class="down">▼</button>
-      </div>
+    <div id="controls" class="hidden">
       <div class="actions">
         <button id="undo" class="big">↶ SNAIL</button>
         <button id="nope" class="big nope" hidden>NOPE</button>
         <button id="lens" class="big lens" hidden>LENS</button>
-        <button id="mapbtn" class="big" hidden>ISLAND</button>
+        <button id="mapbtn" class="big">ISLAND</button>
       </div>
     </div>
-    <div id="footer">tap snail = undo · hold snail = hint · swipe or d-pad · long-press a word to hear it</div>
+    <div id="footer">swipe to move · tap snail = undo · hold snail = hint · hold a word to hear it</div>
   </main>
   <div id="modal" class="modal hidden" role="dialog" aria-modal="true"></div>
-  <script type="module" src="./loader-v4.js?v=4"></script>
+  <script type="module" src="./loader-v5.js?v=5"></script>
 </body>
 </html>
