@@ -25,3 +25,12 @@ button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #000}button:disa
   #footer{display:none}
 }
 @media(max-width:390px){#topbar::before{content:"ZERO";font-size:12px}.chip{font-size:8px;padding:3px 4px}}
+
+/* v6 visual restoration: keep the phone page feeling like one pixel-art surface. */
+html,body{background:#0b0d14;background-image:repeating-linear-gradient(0deg,#0b0d14 0,#0b0d14 7px,#101522 7px,#101522 8px)}
+#shell{background:transparent}
+#screenwrap{padding:2px 0}
+#game{outline-color:#94b0c2;box-shadow:0 0 0 2px #111018,4px 5px 0 #05060a}
+#controls{border-top-color:#333c57}
+button{background:#111827;border-color:#566c86}
+@media(max-width:720px) and (orientation:portrait){#shell{min-height:100dvh}.actions{gap:6px}.big{min-height:46px}}
