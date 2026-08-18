@@ -1,1 +1,1 @@
-{"name":"zero-is-you","private":true,"type":"module","scripts":{"test":"node tests/v8.mjs"}}
+{"name":"zero-is-you","private":true,"type":"module","scripts":{"test":"node tools/prepare-v8.mjs && node tests/v8.mjs"}}
