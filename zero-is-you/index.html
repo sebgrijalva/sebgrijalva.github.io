@@ -8,9 +8,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>ZERO IS YOU</title>
-  <link rel="manifest" href="./manifest.webmanifest?v=9.0">
+  <link rel="manifest" href="./manifest.webmanifest?v=9.1">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=9.0">
+  <link rel="stylesheet" href="./style.css?v=9.1">
 </head>
 <body>
   <main id="shell">
@@ -26,12 +26,12 @@
   </main>
   <div id="modal" class="modal hidden" role="dialog" aria-modal="true"></div>
   <script type="module">
-    const canvas=document.querySelector('#game'),ctx=canvas.getContext('2d'),VERSION='9.0';
+    const canvas=document.querySelector('#game'),ctx=canvas.getContext('2d'),VERSION='9.1';
     const paint=(title,detail='')=>{ctx.imageSmoothingEnabled=false;ctx.fillStyle='#151d31';ctx.fillRect(0,0,canvas.width,canvas.height);for(let i=0;i<38;i++){const x=(i*97)%384,y=(i*53)%448;ctx.fillStyle=i%5?'#566c86':'#ffcd75';ctx.fillRect(x,y,i%7?1:2,i%7?1:2);}ctx.fillStyle='#ffcd75';ctx.font='bold 28px monospace';ctx.textAlign='center';ctx.fillText(title,canvas.width/2,190);if(detail){ctx.fillStyle='#a9b7cc';ctx.font='bold 12px monospace';(detail.match(/.{1,46}/g)||[]).slice(0,7).forEach((s,i)=>ctx.fillText(s,canvas.width/2,228+i*18));}};
     const showError=err=>{paint('V9 BOOT ERROR',String(err));let pre=document.querySelector('#booterror');if(!pre){pre=document.createElement('pre');pre.id='booterror';pre.style='color:#ffcd75;background:#090b12;border:2px solid #b13e53;padding:8px;margin:8px;white-space:pre-wrap;font:11px monospace';document.querySelector('#shell').append(pre);}pre.textContent=`ZERO v${VERSION} failed: ${String(err)}\nFalling back to v7…`;return pre;};
-    paint('ZERO V9 LOADING');
+    paint('ZERO V9.1 LOADING');
     try{if('serviceWorker'in navigator)navigator.serviceWorker.register(`./sw.js?v=${VERSION}`).catch(()=>{});await import(`./game-v9.js?v=${VERSION}`);document.querySelector('#booterror')?.remove();}
-    catch(err){console.error('ZERO v9 boot failed',err);const pre=showError(err);try{await import('./loader-v6.js?v=7.0');}catch(oldErr){console.error('ZERO fallback failed',oldErr);pre.textContent+=`\nFallback failed: ${String(oldErr)}`;}}
+    catch(err){console.error('ZERO v9.1 boot failed',err);const pre=showError(err);try{await import('./loader-v6.js?v=7.0');}catch(oldErr){console.error('ZERO fallback failed',oldErr);pre.textContent+=`\nFallback failed: ${String(oldErr)}`;}}
   </script>
 </body>
 </html>
