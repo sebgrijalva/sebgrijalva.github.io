@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {PROBLEM_BANK,BAND_META} from '../problem-bank-v9.js';
-import {LEVELS,WORLDS} from '../levels-v9.js';
+import {LEVELS,WORLDS} from '../levels-v9-runtime.js';
 import {createState,checkWin,validateNope} from '../engine.js';
 assert.equal(BAND_META.length,6);assert.equal(PROBLEM_BANK.length,60);assert.equal(LEVELS.length,60);assert.equal(WORLDS.length,6);
 for(let w=1;w<=6;w++)assert.equal(LEVELS.filter(l=>l.world===w).length,10);
