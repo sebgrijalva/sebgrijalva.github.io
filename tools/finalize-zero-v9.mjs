@@ -2,19 +2,18 @@ import './build-zero-v9.mjs';
 import fs from 'node:fs';
 const p='zero-is-you/game-v9.js';let s=fs.readFileSync(p,'utf8');
 s=s.replace("from './levels-v9.js'","from './levels-v9-runtime.js'");
-s=s.replaceAll("./sw.js?v=9.0","./sw.js?v=9.1");
-const required=[
-  "from './levels-v9-runtime.js'",
-  "./sw.js?v=9.1",
-  'CHALLENGE CONSTELLATION',
-  'R = ESTIMATED REASONING STEPS',
-  'createMusicV9',
-  'menuBackdrop',
-  'fitPtext',
-];
-for(const needle of required)if(!s.includes(needle))throw new Error(`v9 build transform missing: ${needle}`);
-const names=[...s.matchAll(/^function\s+([A-Za-z_$][\w$]*)\s*\(/gm)].map(m=>m[1]);
-const duplicate=[...new Set(names.filter((n,i)=>names.indexOf(n)!==i))];
-if(duplicate.length)throw new Error(`duplicate v9 functions: ${duplicate.join(', ')}`);
-fs.writeFileSync(p,s);
-console.log('activated and verified ZERO v9.1 runtime');
+s=s.replace("import {createMusicV9} from './music-v9.js';","import {createMusicV10} from './music-v10.js';");
+s=s.replaceAll('createMusicV9','createMusicV10').replaceAll('musicV9','musicV10');
+s=s.replaceAll("./sw.js?v=9.0","./sw.js?v=10.0");
+
+function replaceFn(name,code){const lines=s.split('\n');let n=0;s=lines.map(line=>{if(line.startsWith(`function ${name}(`)){n++;return code}return line}).join('\n');if(n!==1)throw new Error(`v10 expected one ${name}, got ${n}`)}
+replaceFn('menuBackdrop',`function menuBackdrop(seed=0){clear();rect(0,0,canvas.width,canvas.height,'#10182b');for(let i=0;i<58;i++){const n=hash('star:'+seed+':'+i),x=n%canvas.width,y=(n>>>9)%canvas.height,s=(n>>>18)%9===0?2:1;rect(x,y,s,s,(n>>>22)%4===0?P.sand:((n>>>20)%3===0?P.ice:P.gray));}const px=292+(seed*17)%46,py=78+(seed*31)%80,r=22+(seed%3)*7;rect(px-r,py-r,r*2,r*2,'#17233c');for(let yy=-r;yy<r;yy+=3){const span=Math.floor(Math.sqrt(Math.max(0,r*r-yy*yy)));rect(px-span,py+yy,span*2,3,seed%2?P.violet:P.water);}rect(px-r-9,py+2,r*2+18,2,'#ffffff18');for(let y=54;y<canvas.height;y+=32)rect(0,y,canvas.width,1,'#ffffff06');}`);
+replaceFn('terrain',`function terrain(world,gx,gy){const L=layout(),px=L.bx+gx*TILE,py=L.by+gy*TILE,n=hash(world+':'+gx+':'+gy),pal=[[P.grass,P.grass2,'#2f5c3f'],['#355d46','#426d4e','#284b3b'],['#244d68','#315f78','#1c4059'],['#40385f','#51436d','#332d50'],['#65503b','#765d42','#4e3d30'],['#303b5d','#3a466a','#252e4c']][Math.max(0,(world||1)-1)]||[P.grass,P.grass2,'#31553b'],base=pal[(gx+gy+(n&1))%2];rect(px,py,32,32,base);rect(px,py,32,2,'#ffffff10');rect(px,py,2,32,'#ffffff08');rect(px+30,py,2,32,'#00000020');rect(px,py+30,32,2,'#00000028');for(let i=0;i<3;i++){const ox=4+((n>>>(i*5))%23),oy=5+((n>>>(i*7+3))%21);rect(px+ox,py+oy,2,2,pal[2]);}if(world<=2){const ox=5+(n%18),oy=8+((n>>4)%15);rect(px+ox,py+oy,2,7,P.mint);rect(px+ox+2,py+oy-2,5,2,P.mint);}else if(world===3){rect(px+5+(n%16),py+7,2,16,P.cyan);rect(px+7+(n%16),py+20,6,2,'#7de7ff');}else if(world===4){rect(px+5,py+23,22,2,'#292342');rect(px+8+(n%12),py+8,3,8,P.violet);}else if(world===5){rect(px+5,py+24,22,3,'#352b24');rect(px+8+(n%12),py+7,4,4,P.gold);}else{rect(px+4+(n%20),py+5+(n%17),2,2,P.ice);rect(px+24-(n%12),py+19,2,7,P.red);}}`);
+replaceFn('drawWord',`function drawWord(e){const [px,py]=cellXY(e),col=wordColor(e.text),g=wordGlyph(e.text),seed=hash(e.id)%2;rect(px+2,py+4+seed,28,27,'#03040a');rect(px+3,py+2+seed,26,27,col);rect(px+5,py+4+seed,22,23,P.deep);rect(px+5,py+4+seed,22,2,'#ffffff30');rect(px+5,py+25+seed,22,2,'#00000070');rect(px+3,py+2+seed,4,4,P.white);rect(px+25,py+2+seed,4,4,P.white);rect(px+3,py+25+seed,4,4,'#00000088');rect(px+25,py+25+seed,4,4,'#00000088');const tw=textWidth(g,2,0),ss=tw<=22?2:1;ptext(g,px+16,py+(ss===2?9:12)+seed,P.white,ss,'center',0);}`);
+
+// Increase musical urgency as reasoning depth rises without turning the soundtrack into noise.
+s=s.replace("musicV10.setScene(screen==='nil'?6:world);musicV10.start(screen==='nil'?6:world);","musicV10.setScene(screen==='nil'?6:world);musicV10.setIntensity(screen==='play'?1+Math.min(.8,(level?.reasoningSteps||1)/12):1);musicV10.start(screen==='nil'?6:world);");
+const required=["from './levels-v9-runtime.js'","./sw.js?v=10.0",'CHALLENGE CONSTELLATION','createMusicV10','menuBackdrop','fitPtext','setIntensity'];
+for(const needle of required)if(!s.includes(needle))throw new Error(`v10 build transform missing: ${needle}`);
+const names=[...s.matchAll(/^function\s+([A-Za-z_$][\w$]*)\s*\(/gm)].map(m=>m[1]);const duplicate=[...new Set(names.filter((n,i)=>names.indexOf(n)!==i))];if(duplicate.length)throw new Error(`duplicate v10 functions: ${duplicate.join(', ')}`);
+fs.writeFileSync(p,s);console.log('activated ZERO v10 visual/audio refinement');
