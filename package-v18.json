@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/platformer-v18-smoke.mjs && node zero-is-you/tests/v8.mjs"
+    "test": "node tests/platformer-v18-smoke.mjs && node zero-is-you/tools/prepare-v8.mjs && node zero-is-you/tests/v8.mjs"
   },
   "devDependencies": {
     "matter-js": "0.20.0"
