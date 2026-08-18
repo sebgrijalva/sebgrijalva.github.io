@@ -8,18 +8,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>ZERO IS YOU</title>
-  <link rel="manifest" href="./manifest.webmanifest?v=8.2">
+  <link rel="manifest" href="./manifest.webmanifest?v=8.3">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=8.2">
-  <script type="importmap">
-  {"imports":{
-    "./challenge-levels.js":"./challenge-levels.js?v=8.2",
-    "./levels.js":"./levels.js?v=8.2",
-    "./nil-levels.js":"./nil-levels.js?v=8.2",
-    "./engine.js":"./engine.js?v=8.2",
-    "./facts.js":"./facts.js?v=8.2"
-  }}
-  </script>
+  <link rel="stylesheet" href="./style.css?v=8.3">
 </head>
 <body>
   <main id="shell">
@@ -37,21 +28,52 @@
   <script type="module">
     const canvas=document.querySelector('#game');
     const ctx=canvas.getContext('2d');
+    const VERSION='8.3';
     const paint=(title,detail='')=>{
       ctx.imageSmoothingEnabled=false;
       ctx.fillStyle='#202943';ctx.fillRect(0,0,canvas.width,canvas.height);
       ctx.fillStyle='#ffcd75';ctx.font='bold 28px monospace';ctx.textAlign='center';ctx.fillText(title,canvas.width/2,190);
       if(detail){ctx.fillStyle='#a9b7cc';ctx.font='bold 13px monospace';const lines=detail.match(/.{1,44}/g)||[];lines.slice(0,7).forEach((s,i)=>ctx.fillText(s,canvas.width/2,230+i*19));}
     };
+    const showError=(err)=>{
+      paint('V8 BOOT ERROR',String(err));
+      let pre=document.querySelector('#booterror');
+      if(!pre){pre=document.createElement('pre');pre.id='booterror';pre.style='color:#ffcd75;background:#090b12;border:2px solid #b13e53;padding:8px;margin:8px;white-space:pre-wrap;font:11px monospace';document.querySelector('#shell').append(pre);}
+      pre.textContent=`ZERO v${VERSION} failed: ${String(err)}\nFalling back to v7…`;
+      return pre;
+    };
     paint('ZERO IS LOADING');
     try{
-      if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=8.2').catch(()=>{});
-      await import('./game-v8.js?v=8.2');
+      if('serviceWorker' in navigator) navigator.serviceWorker.register(`./sw.js?v=${VERSION}`).catch(()=>{});
+      const base=new URL('./',location.href);
+      const response=await fetch(`./game-v8.js?v=${VERSION}`,{cache:'no-store'});
+      if(!response.ok) throw new Error(`game-v8.js HTTP ${response.status}`);
+      let source=await response.text();
+
+      // v8.1 accidentally contained repeated top-level renderer helpers. Since each helper
+      // is intentionally one source line, keep the first declaration of every function.
+      const seenFunctions=new Set();
+      source=source.split('\n').filter(line=>{
+        const m=line.match(/^function\s+([A-Za-z_$][\w$]*)\s*\(/);
+        if(!m) return true;
+        if(seenFunctions.has(m[1])) return false;
+        seenFunctions.add(m[1]);
+        return true;
+      }).join('\n');
+
+      // Blob modules have no useful relative base URL, so make static imports absolute.
+      source=source.replace(/from\s+(['"])\.\/([^'"]+)\1/g,(all,q,path)=>{
+        const u=new URL(path,base);u.searchParams.set('v',VERSION);
+        return `from ${q}${u.href}${q}`;
+      });
+      source += `\n//# sourceURL=zero-is-you-v${VERSION}.js`;
+      const moduleURL=URL.createObjectURL(new Blob([source],{type:'text/javascript'}));
+      try{await import(moduleURL);}finally{setTimeout(()=>URL.revokeObjectURL(moduleURL),15000);}
+      document.querySelector('#booterror')?.remove();
     }catch(err){
       console.error('ZERO v8 boot failed',err);
-      paint('V8 BOOT ERROR',String(err));
-      const pre=document.createElement('pre');pre.id='booterror';pre.style='color:#ffcd75;background:#090b12;border:2px solid #b13e53;padding:8px;margin:8px;white-space:pre-wrap;font:11px monospace';pre.textContent='ZERO v8.2 failed: '+String(err)+'\nFalling back to v7…';document.querySelector('#shell').append(pre);
-      try{await import('./loader-v6.js?v=7.0');}catch(oldErr){console.error('ZERO v7 fallback failed',oldErr);pre.textContent+='\nFallback failed: '+String(oldErr);}
+      const pre=showError(err);
+      try{await import('./loader-v6.js?v=7.0');}catch(oldErr){console.error('ZERO v7 fallback failed',oldErr);pre.textContent+=`\nFallback failed: ${String(oldErr)}`;}
     }
   </script>
 </body>
