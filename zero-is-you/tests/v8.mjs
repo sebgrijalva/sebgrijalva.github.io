@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 import {LEVELS} from '../challenge-levels.js';
 import {NIL_LEVELS} from '../nil-levels.js';
 import {createState,validateNope} from '../engine.js';
@@ -18,9 +20,15 @@ assert.equal(parseFactTokens(['TWO','PLUS','THREE','TIMES','FOUR','SAME','FOURTE
 assert.equal(parseFactTokens(['TWO','PLUS','THREE','TIMES','FOUR','SAME','TWENTY']).truth,false);
 assert.equal(parseFactTokens(['HALF','SAME','TWOQUARTERS']).truth,true);
 assert(rEq(rational(1n,2n),rational(2n,4n)));
-const src=fs.readFileSync(new URL('../game-v8.js',import.meta.url),'utf8');
+const rendererURL=new URL('../game-v8.js',import.meta.url);
+const rendererPath=fileURLToPath(rendererURL);
+const src=fs.readFileSync(rendererURL,'utf8');
 assert.match(src,/const TILE=32/,'renderer must use native 32x32 tiles');
 assert.match(src,/w:384,h:448/,'portrait renderer must be 384x448');
 assert.match(src,/BOARD_W=12\*TILE/,'board must remain 12 tiles wide');
 assert.doesNotMatch(src,/game-v6\.pack/,'v8 must not depend on the packed blob loader');
-console.log('ZERO IS YOU v8 challenge and 32px renderer checks passed');
+const names=[...src.matchAll(/^function\s+([A-Za-z_$][\w$]*)\s*\(/gm)].map(m=>m[1]);
+const duplicates=[...new Set(names.filter((n,i)=>names.indexOf(n)!==i))];
+assert.deepEqual(duplicates,[],'renderer contains duplicate top-level function declarations');
+execFileSync(process.execPath,['--check',rendererPath],{stdio:'inherit'});
+console.log('ZERO IS YOU v8 challenge, syntax, and 32px renderer checks passed');
