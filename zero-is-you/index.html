@@ -8,9 +8,18 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>ZERO IS YOU</title>
-  <link rel="manifest" href="./manifest.webmanifest?v=8.1">
+  <link rel="manifest" href="./manifest.webmanifest?v=8.2">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=8.1">
+  <link rel="stylesheet" href="./style.css?v=8.2">
+  <script type="importmap">
+  {"imports":{
+    "./challenge-levels.js":"./challenge-levels.js?v=8.2",
+    "./levels.js":"./levels.js?v=8.2",
+    "./nil-levels.js":"./nil-levels.js?v=8.2",
+    "./engine.js":"./engine.js?v=8.2",
+    "./facts.js":"./facts.js?v=8.2"
+  }}
+  </script>
 </head>
 <body>
   <main id="shell">
@@ -25,6 +34,25 @@
     <div id="footer">swipe to move · tap snail = undo · hold snail = hint · hold a word to hear it</div>
   </main>
   <div id="modal" class="modal hidden" role="dialog" aria-modal="true"></div>
-  <script type="module" src="./game-v8.js?v=8.1"></script>
+  <script type="module">
+    const canvas=document.querySelector('#game');
+    const ctx=canvas.getContext('2d');
+    const paint=(title,detail='')=>{
+      ctx.imageSmoothingEnabled=false;
+      ctx.fillStyle='#202943';ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle='#ffcd75';ctx.font='bold 28px monospace';ctx.textAlign='center';ctx.fillText(title,canvas.width/2,190);
+      if(detail){ctx.fillStyle='#a9b7cc';ctx.font='bold 13px monospace';const lines=detail.match(/.{1,44}/g)||[];lines.slice(0,7).forEach((s,i)=>ctx.fillText(s,canvas.width/2,230+i*19));}
+    };
+    paint('ZERO IS LOADING');
+    try{
+      if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=8.2').catch(()=>{});
+      await import('./game-v8.js?v=8.2');
+    }catch(err){
+      console.error('ZERO v8 boot failed',err);
+      paint('V8 BOOT ERROR',String(err));
+      const pre=document.createElement('pre');pre.id='booterror';pre.style='color:#ffcd75;background:#090b12;border:2px solid #b13e53;padding:8px;margin:8px;white-space:pre-wrap;font:11px monospace';pre.textContent='ZERO v8.2 failed: '+String(err)+'\nFalling back to v7…';document.querySelector('#shell').append(pre);
+      try{await import('./loader-v6.js?v=7.0');}catch(oldErr){console.error('ZERO v7 fallback failed',oldErr);pre.textContent+='\nFallback failed: '+String(oldErr);}
+    }
+  </script>
 </body>
 </html>
