@@ -16,7 +16,8 @@ function makeLock(spec,base){
   slots.forEach((slot,i)=>entities.push(F(socketXs[i],2,'SOCKET',{socket:slot,label:slot})));
   // Broken barrier prevents every candidate from being a straight vertical shove.
   [[4,4],[5,4],[8,4],[9,4]].forEach(([x,y])=>entities.push(O(x,y,'WALL')));
-  const spots=[[2,5],[4,5],[6,5],[8,5],[10,5],[2,6],[4,6],[6,6],[8,6],[10,6]];
+  // Stagger rows so candidates never begin as accidental push-chains.
+  const spots=[[2,5],[4,5],[6,5],[8,5],[10,5],[3,6],[5,6],[7,6],[9,6],[11,6]];
   spec.data.candidates.forEach((t,i)=>entities.push(W(spots[i][0],spots[i][1],t)));
   return {
     ...base,
