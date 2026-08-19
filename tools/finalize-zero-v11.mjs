@@ -3,7 +3,7 @@ import fs from 'node:fs';
 const p='zero-is-you/game-v9.js';let s=fs.readFileSync(p,'utf8');
 s=s.replace("from './levels-v10-runtime.js'","from './levels-v11-runtime.js'");
 s=s.replace("from './engine.js'","from './engine-v11.js'");
-s=s.replaceAll('./sw.js?v=10.0','./sw.js?v=10.1');
+s=s.replaceAll('./sw.js?v=10.0','./sw.js?v=10.2');
 
 function replaceFn(name,fn){const code=fn.toString(),lines=s.split('\n');let n=0;s=lines.map(line=>{if(line.startsWith(`function ${name}(`)){n++;return code;}return line;}).join('\n');if(n!==1)throw new Error(`v11 expected one ${name}, got ${n}`);}
 
@@ -11,7 +11,7 @@ replaceFn('drawFloor',function drawFloor(e){const [px,py]=cellXY(e);switch(e.flo
 
 replaceFn('drawPlay',function drawPlay(){clear();const L=layout(),accent=bandColor(level.world);fitPtext(level.expansion==='nil'?'FACT FORGE':level.title,10,7,245,level.expansion==='nil'?P.gold:accent,2,1,'left');ptext('B'+(level.challengeBand||'-')+' M'+state.moves,canvas.width-8,8,P.gray,1,'right');ptext('#'.repeat(Math.min(9,level.difficulty||1)),canvas.width-8,29,P.gold,1,'right');fitPtext(level.concept||'',10,31,245,P.gray,1,1,'left');for(let gy=0;gy<8;gy++)for(let gx=0;gx<12;gx++)terrain(level.world,gx,gy);specialOverlay();if(level.mode==='graph')drawGraph();else{for(const e of state.entities.filter(e=>e.kind==='floor'))drawFloor(e);for(const e of state.entities.filter(e=>e.kind==='object'))drawObject(e);for(const e of state.entities.filter(e=>e.kind==='word'))drawWord(e);}if(level.expansion==='nil'||level.goal?.type==='facts')drawFactGlow();if(L===PORTRAIT){rect(0,L.panelY,384,128,P.black);rect(0,L.panelY,384,4,accent);if(level.lockPuzzle){fitPtext('MAKE EVERY CLUE TRUE',12,330,350,P.white,2,1,'left');(level.constraintDisplay||[]).slice(0,6).forEach((q,i)=>fitPtext(q,16,353+i*13,350,i===0?P.sand:P.paper,1,1,'left'));ptext('EACH NUMBER USED ONCE',372,431,P.gray,1,'right');}else if(level.goal?.type==='facts'){fitPtext('BUILD THE TRUE RELATION',12,334,350,P.white,2,1,'left');ptext('FACTS AUTHORED',12,364,P.gray,1);(state.authoredInLevel||[]).slice(-3).forEach((k,i)=>fitPtext('+ '+displayFactKey(k),16,382+i*18,350,P.paper,1,1,'left'));}else{fitPtext(level.goalText||'REASON, THEN MOVE',12,334,350,P.white,2,1,'left');ptext('ACTIVE RULES',12,364,P.gray,1);(state.rules||[]).slice(0,3).forEach((r,i)=>fitPtext(r.subject+' '+r.verb+' '+r.object,16,382+i*18,350,i===0?P.sand:P.white,1,1,'left'));if(level.hint)ptext('HOLD SNAIL = HINT',372,423,P.gray,1,'right');}}});
 
-const required=["from './levels-v11-runtime.js'","from './engine-v11.js'",'./sw.js?v=10.1','MAKE EVERY CLUE TRUE','createMusicV10'];
+const required=["from './levels-v11-runtime.js'","from './engine-v11.js'",'./sw.js?v=10.2','MAKE EVERY CLUE TRUE','createMusicV10'];
 for(const x of required)if(!s.includes(x))throw new Error(`v11 activation missing ${x}`);
 fs.writeFileSync(p,s);
-console.log('activated ZERO v10.1 enumerated math generator');
+console.log('activated ZERO v10.2 enumerated math generator');
