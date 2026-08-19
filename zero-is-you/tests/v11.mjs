@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {PROBLEM_BANK} from '../problem-bank-v11.js';
+import {PROBLEM_BANK} from '../problem-bank-v11-fix.js';
 import {enumerateLockSolutions,lockComplexity} from '../constraints-v11.js';
 import {LEVELS} from '../levels-v11-runtime.js';
 import {createState,stepState} from '../engine-v11.js';
@@ -24,7 +24,9 @@ for(let w=1;w<=6;w++){
   }
 }
 
-// High bands must not be dominated by one-token worksheet templates.
+const web=PROBLEM_BANK.find(p=>p.title==='PRODUCT WEB');
+assert.deepEqual(lockComplexity(web.data).trace,[560,280,112,5,2,1]);
+
 for(const w of [5,6]){
   const band=PROBLEM_BANK.filter(p=>p.world===w);
   assert(band.filter(p=>p.kind==='lock').length>=4);
@@ -37,9 +39,8 @@ for(const level of LEVELS.filter(l=>l.lockPuzzle)){
   assert.equal(level.goal.type,'constraintSockets');
   assert.equal(level.constraintDisplay.length,level.goal.constraints.length);
   assert(level.entities.filter(e=>e.floorType==='SOCKET').length>=3);
-  // Ordinary motion must preserve the new goal type rather than crashing the base engine.
   stepState(s,level,'R');
 }
 const game=fs.readFileSync('zero-is-you/game-v9.js','utf8');
-assert.match(game,/levels-v11-runtime/);assert.match(game,/engine-v11/);assert.match(game,/MAKE EVERY CLUE TRUE/);assert.match(game,/v=10\.1/);
-console.log('ZERO v10.1 enumerated math-generator checks passed');
+assert.match(game,/levels-v11-runtime/);assert.match(game,/engine-v11/);assert.match(game,/MAKE EVERY CLUE TRUE/);assert.match(game,/v=10\.2/);
+console.log('ZERO v10.2 enumerated math-generator checks passed');
