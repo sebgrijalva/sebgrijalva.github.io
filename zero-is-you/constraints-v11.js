@@ -18,7 +18,7 @@ export function constraintHolds(c,a){
 export function constraintText(c){
   if(c.kind==='sum')return `${c.vars.join(' + ')} = ${c.value}`;
   if(c.kind==='prod')return `${c.vars.join(' X ')} = ${c.value}`;
-  if(c.kind==='diff')return `DIFF ${c.a},${c.b} = ${c.value}`;
+  if(c.kind==='diff')return `DIFF ${c.a} ${c.b} = ${c.value}`;
   if(c.kind==='lt')return `${c.a} < ${c.b}`;
   if(c.kind==='gt')return `${c.a} > ${c.b}`;
   if(c.kind==='mod')return `${c.var} MOD ${c.mod} = ${c.value}`;
