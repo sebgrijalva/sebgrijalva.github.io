@@ -1,5 +1,5 @@
-const C='zero-is-you-v10-1-math';
-const F=['./?v=10.1','./index.html','./style.css?v=10.1','./game-v9.js?v=10.1','./engine.js','./engine-v11.js','./constraints-v11.js','./facts.js','./levels.js','./challenge-levels.js','./levels-v10.js','./levels-v10-runtime.js','./levels-v11-runtime.js','./problem-bank-v9.js','./problem-bank-v10.js','./problem-bank-v11.js','./nil-levels.js','./music-v10.js','./manifest.webmanifest?v=10.1','./icon.svg'];
+const C='zero-is-you-v10-2-math';
+const F=['./?v=10.2','./index.html','./style.css?v=10.2','./game-v9.js?v=10.2','./engine.js','./engine-v11.js','./constraints-v11.js','./facts.js','./levels.js','./challenge-levels.js','./levels-v10.js','./levels-v10-runtime.js','./levels-v11-runtime.js','./problem-bank-v9.js','./problem-bank-v10.js','./problem-bank-v11.js','./problem-bank-v11-fix.js','./nil-levels.js','./music-v10.js','./manifest.webmanifest?v=10.2','./icon.svg'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(C).then(c=>c.addAll(F)))});
 self.addEventListener('activate',e=>e.waitUntil(Promise.all([caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==C).map(k=>caches.delete(k)))),self.clients.claim()])));
-self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(fetch(e.request).then(r=>{if(r.ok){const copy=r.clone();caches.open(C).then(c=>c.put(e.request,copy));}return r}).catch(()=>caches.match(e.request).then(r=>r||caches.match('./?v=10.1'))))});
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(fetch(e.request).then(r=>{if(r.ok){const copy=r.clone();caches.open(C).then(c=>c.put(e.request,copy));}return r}).catch(()=>caches.match(e.request).then(r=>r||caches.match('./?v=10.2'))))});
