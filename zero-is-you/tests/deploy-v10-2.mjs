@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const game=fs.readFileSync('zero-is-you/game-v9.js','utf8');
+assert.match(game,/levels-v11-runtime\.js/,'generated game must use v11 level runtime');
+assert.match(game,/engine-v11\.js/,'generated game must use v11 engine');
+assert.match(game,/v=10\.2/,'generated game must use v10.2 cache boundary');
+assert.match(game,/MAKE EVERY CLUE TRUE/,'generated game must include constraint-lock UI');
+const index=fs.readFileSync('zero-is-you/index.html','utf8');
+assert.match(index,/VERSION='10\.2'/,'public shell must identify v10.2');
+assert.match(index,/game-v9\.js\?v=\$\{VERSION\}/,'public shell must load generated runtime');
+console.log('ZERO v10.2 deploy artifact verified');
