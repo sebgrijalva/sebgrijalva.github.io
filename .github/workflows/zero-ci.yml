@@ -1,0 +1,45 @@
+name: ZERO v10.2 Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'zero-is-you/**'
+      - 'tools/build-zero-v9.mjs'
+      - 'tools/finalize-zero-v9.mjs'
+      - 'tools/finalize-zero-v11.mjs'
+      - 'tools/repair-zero-builder.mjs'
+      - '.github/workflows/zero-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-zero:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build current ZERO runtime
+        run: |
+          node zero-is-you/tools/prepare-v8.mjs
+          node tools/repair-zero-builder.mjs
+          node tools/finalize-zero-v11.mjs
+      - name: Syntax check current ZERO runtime
+        run: |
+          node --check zero-is-you/game-v9.js
+          node --check zero-is-you/music-v10.js
+          node --check zero-is-you/constraints-v11.js
+          node --check zero-is-you/engine-v11.js
+          node --check zero-is-you/levels-v10.js
+          node --check zero-is-you/levels-v10-runtime.js
+          node --check zero-is-you/levels-v11-runtime.js
+      - name: Verify enumerated math generator
+        run: node zero-is-you/tests/v11.mjs
+      - name: Verify public v10.2 bundle contract
+        run: node zero-is-you/tests/deploy-v10-2.mjs
