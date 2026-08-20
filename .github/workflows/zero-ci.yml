@@ -8,6 +8,7 @@ on:
       - 'tools/build-zero-v9.mjs'
       - 'tools/finalize-zero-v9.mjs'
       - 'tools/finalize-zero-v11.mjs'
+      - 'tools/repair-zero-builder.mjs'
       - '.github/workflows/zero-ci.yml'
   workflow_dispatch:
 
@@ -27,6 +28,7 @@ jobs:
       - name: Build current ZERO runtime
         run: |
           node zero-is-you/tools/prepare-v8.mjs
+          node tools/repair-zero-builder.mjs
           node tools/finalize-zero-v11.mjs
       - name: Syntax check current ZERO runtime
         run: |
