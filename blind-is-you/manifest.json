@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Blind Is You",
   "short_name": "Blind Is You",
-  "start_url": "./v2.html?v=2.0-core2",
+  "start_url": "./v2.html?v=2.0-core3",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
