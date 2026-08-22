@@ -1,11 +1,12 @@
 {
+  "id": "./",
   "name": "Blind Is You",
   "short_name": "Blind Is You",
-  "start_url": "./",
+  "start_url": "./?v=2.0.2",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#15171c",
-  "theme_color": "#15171c",
-  "description": "A visuospatial working-memory puzzle game."
+  "background_color": "#05090b",
+  "theme_color": "#05090b",
+  "description": "Blind Is You v2.0 — a logical-mystical exploration of human working memory."
 }
