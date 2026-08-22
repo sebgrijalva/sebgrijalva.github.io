@@ -224,16 +224,17 @@ jobs:
           text = re.sub(r'\s*<meta\s+name=["\']biy-presentation["\'][^>]*>\s*', '\n', text, flags=re.I)
           text = re.sub(r'\s*<link[^>]+href=["\'](?:\./)?v11\.css(?:\?[^"\']*)?["\'][^>]*>\s*', '\n', text, flags=re.I)
           text = re.sub(r'\s*<script[^>]+src=["\'](?:\./)?v11\.js(?:\?[^"\']*)?["\'][^>]*>\s*</script>\s*', '\n', text, flags=re.I)
-          text = text.replace('</head>', '  <meta name="biy-presentation" content="2.0">\n  <link rel="stylesheet" href="v11.css?v=2.0.1">\n</head>')
-          text = text.replace('</body>', '  <script src="v11.js?v=2.0.1"></script>\n</body>')
+          text = text.replace('</head>', '  <meta name="biy-presentation" content="2.0">\n  <link rel="stylesheet" href="v11.css?v=2.0.3">\n</head>')
+          text = text.replace('</body>', '  <script src="v11.js?v=2.0.3"></script>\n</body>')
           p.write_text(text)
           PY
           grep -q 'name="biy-presentation" content="2.0"' blind-is-you/index.html
-          grep -q 'v11.css?v=2.0.1' blind-is-you/index.html
-          grep -q 'v11.js?v=2.0.1' blind-is-you/index.html
+          grep -q 'v11.css?v=2.0.3' blind-is-you/index.html
+          grep -q 'v11.js?v=2.0.3' blind-is-you/index.html
           test "$(grep -o 'v11.css' blind-is-you/index.html | wc -l)" -eq 1
           test "$(grep -o 'v11.js' blind-is-you/index.html | wc -l)" -eq 1
           grep -q "var VERSION='2.0'" blind-is-you/v11.js
+          grep -q 'installVersionStamp' blind-is-you/v11.js
           grep -q 'Blind Is You v2.0' blind-is-you/v11.css
 
       - name: Build static site
@@ -268,9 +269,10 @@ jobs:
           grep -q 'data-version="0.4"' _site/blind-is-you/index.html
           grep -q "var VERSION='0.4'" _site/blind-is-you/index.html
           grep -q 'name="biy-presentation" content="2.0"' _site/blind-is-you/index.html
-          grep -q 'v11.css?v=2.0.1' _site/blind-is-you/index.html
-          grep -q 'v11.js?v=2.0.1' _site/blind-is-you/index.html
+          grep -q 'v11.css?v=2.0.3' _site/blind-is-you/index.html
+          grep -q 'v11.js?v=2.0.3' _site/blind-is-you/index.html
           grep -q "var VERSION='2.0'" _site/blind-is-you/v11.js
+          grep -q 'installVersionStamp' _site/blind-is-you/v11.js
           grep -q 'Blind Is You v2.0' _site/blind-is-you/v11.css
 
       - name: Configure Pages
