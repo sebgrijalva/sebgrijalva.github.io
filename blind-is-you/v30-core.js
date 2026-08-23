@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 
-const BUILD='3.0.2';
+const BUILD='3.0.3';
 const PROTOCOL='biy-v3-p3';
 const STORAGE={sessions:'biy_v30_sessions',trials:'biy_v30_trials',active:'biy_v30_active'};
 const FORMS=['trace','shift','echo'];
@@ -454,7 +454,7 @@ function completeSession(){
   FORMS.forEach(f=>{const e=estimateAdaptive(completed.adaptive[f]);completed.forms[f]={estimate:e,summary:boundarySentence(f,e),change:changeText(e,previousComparable(f))}});delete completed.adaptive;
   const sessions=load(STORAGE.sessions,[]);sessions.push(completed);save(STORAGE.sessions,sessions.slice(-80));localStorage.removeItem(STORAGE.active);session=null;
   const cards=FORMS.map(f=>{const x=completed.forms[f],e=x.estimate;return`<div class="summary-card"><b>${META[f].name}</b><strong>${x.summary}</strong><small>${e.trials} valid measured trials · ${e.reversals} reversals · uncertainty ${e.low}–${e.high} · ${e.stable?'stable reversal region':e.stopReason||'bounded estimate'} · ${x.change}. Descriptive, not normative.</small></div>`}).join('');
-  modal('SESSION COMPLETE','Three limits, kept separate',`<p>No pooled intelligence score was calculated.</p><div class="summary-grid">${cards}</div><p>Exact seeds, targets, responses, prescribed and observed timing, adaptive states, build, and protocol are stored locally for later analysis.</p>`,[{label:'Return home',value:'home'}]).then(showHome);
+  modal('SESSION COMPLETE','Three limits, kept separate',`<p>Results remain separate across the three forms.</p><div class="summary-grid">${cards}</div><p>Exact seeds, targets, responses, prescribed and observed timing, adaptive states, build, and protocol are stored locally for later analysis.</p>`,[{label:'Return home',value:'home'}]).then(showHome);
 }
 async function showHistory(){
   const s=load(STORAGE.sessions,[]);if(!s.length){await modal('HISTORY','No completed v3 sessions','<p>Completed v3 sessions will appear here. v2 data remains preserved under its original storage keys and is intentionally not merged.</p>',[{label:'Close',value:'close'}]);return}
