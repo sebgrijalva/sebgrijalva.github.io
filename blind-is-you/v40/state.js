@@ -8,9 +8,9 @@ export const STORAGE_KEYS = {
 };
 export const TEST_MODE = typeof location !== 'undefined' && new URLSearchParams(location.search).get('test') === '1';
 export const TIMING = TEST_MODE ? {
-  flash: 45, gap: 18, retention: 55, noiseRetention: 260, retro: 45, feedback: 35, pauseExtra: 65, interference: 55, deadline: 180
+  flash: 45, gap: 18, retention: 60, calibrationRetention: 35, noiseRetention: 260, retro: 45, feedback: 35, pauseExtra: 65, interference: 55, deadline: 180
 } : {
-  flash: 520, gap: 180, retention: 650, noiseRetention: 3600, retro: 620, feedback: 420, pauseExtra: 900, interference: 850, deadline: 1500
+  flash: 520, gap: 180, retention: 1050, calibrationRetention: 420, noiseRetention: 3600, retro: 620, feedback: 420, pauseExtra: 900, interference: 850, deadline: 1500
 };
 export const EXPEDITIONS = ['focus','structure','breath','noise'];
 export const QUESTIONS = {
