@@ -1,0 +1,4 @@
+import {runGeneratorAudit,runCounterbalanceAudit,runPairPurityAudit,runSimulationAudit,PROTOCOLS,generatePair} from '../engine.js';
+const gen=runGeneratorAudit(10000), cb=runCounterbalanceAudit(100), purity=runPairPurityAudit(10000), simulation=runSimulationAudit();
+let extra=true;for(const id of Object.keys(PROTOCOLS)){for(let i=0;i<2000;i++){const p=generatePair(id,{pairSeed:i+77,calibratedLoad:3+(i%3),counterbalanceState:i});if(id==='structure'){const d=Math.abs(p.matchStats.structured.avgStep-p.matchStats.scrambled.avgStep);if(d>1.6){extra=false;console.error('structure spatial mismatch',i,d);break;}}}}
+console.log(JSON.stringify({generator:gen,counterbalance:cb,purity:{ok:purity.ok,failures:purity.failures.slice(0,3)},simulation,extra},null,2));if(!gen.ok||!cb.ok||!purity.ok||!simulation.ok||!extra)process.exit(1);

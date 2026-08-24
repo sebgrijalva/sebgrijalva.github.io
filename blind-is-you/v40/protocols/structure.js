@@ -1,0 +1,21 @@
+import {TIMING,rng32,seedFrom,shuffled,extent,avgStep} from '../state.js';
+function structured(load,rng){
+  const dirs=[[0,1],[1,0],[1,1],[1,-1]],d=dirs[Math.floor(rng()*dirs.length)],starts=[];for(let r=0;r<5;r++)for(let c=0;c<5;c++){const er=r+d[0]*(load-1),ec=c+d[1]*(load-1);if(er>=0&&er<5&&ec>=0&&ec<5)starts.push({r,c});}
+  if(starts.length){const s=starts[Math.floor(rng()*starts.length)];return Array.from({length:load},(_,i)=>({r:s.r+d[0]*i,c:s.c+d[1]*i}));}
+  const motif=[{r:1,c:1},{r:1,c:2},{r:2,c:2},{r:2,c:3},{r:3,c:3},{r:3,c:4},{r:4,c:4},{r:4,c:3}];return motif.slice(0,load);
+}
+function isTranslation(seq){if(seq.length<3)return false;const dr=seq[1].r-seq[0].r,dc=seq[1].c-seq[0].c;return seq.slice(2).every((p,i)=>p.r-seq[i+1].r===dr&&p.c-seq[i+1].c===dc);}
+function scrambledMatched(load,rng,targetStats){
+  const cells=[];for(let r=0;r<5;r++)for(let c=0;c<5;c++)cells.push({r,c});let best=null,bestScore=1e9;
+  for(let k=0;k<400;k++){const cand=shuffled(cells,rng).slice(0,load);if(isTranslation(cand))continue;const e=extent(cand),score=Math.abs(avgStep(cand)-targetStats.step)+.3*(Math.abs(e.h-targetStats.ext.h)+Math.abs(e.w-targetStats.ext.w));if(score<bestScore){best=cand;bestScore=score;}if(score<.45)break;}return best;
+}
+
+export const protocol={
+ id:'structure-translation-v1',explorationId:'structure',construct:'use of spatial regularity / compressibility in serial visuospatial memory',factor:'spatialGrammar',
+ metadata:{targetConstruct:'spatial regularity / compressibility in serial visuospatial memory',manipulation:{factor:'spatialGrammar',levels:['scrambled','translation']},heldConstant:['memoryLoad','gridSize','cueDuration','responseMode','uniqueCellCount'],confoundAudit:{motor:'identical',visual:'identical pulse cue',ruleComplexity:'no rule discovery required',timing:'identical'},expectedErrorClasses:['serial-position-error','order-transposition'],exclusionRules:['cancelled trial']},
+ generatePair({pairSeed,calibratedLoad,counterbalanceState=0}){const load=Math.max(3,Math.min(5,calibratedLoad)),order=counterbalanceState%2?['structured','scrambled']:['scrambled','structured'],skeleton={gridSize:5,memoryLoad:load,cueDuration:TIMING.flash,responseMode:'serial-location',grammar:'translation'};const srng=rng32(seedFrom(this.id,pairSeed,'structured')),seq=structured(load,srng),stats={step:avgStep(seq),ext:extent(seq)};const rrng=rng32(seedFrom(this.id,pairSeed,'scrambled')),scr=scrambledMatched(load,rrng,stats);const trials={structured:{protocolVersion:this.id,explorationId:'structure',construct:this.construct,factor:this.factor,condition:'structured',trialSeed:seedFrom(this.id,pairSeed,'structured'),gridSize:5,memoryLoad:load,target:seq,grammar:'translation',presentationTiming:{flashMs:TIMING.flash,gapMs:TIMING.gap},responseMode:'serial-location'},scrambled:{protocolVersion:this.id,explorationId:'structure',construct:this.construct,factor:this.factor,condition:'scrambled',trialSeed:seedFrom(this.id,pairSeed,'scrambled'),gridSize:5,memoryLoad:load,target:scr,grammar:'none',presentationTiming:{flashMs:TIMING.flash,gapMs:TIMING.gap},responseMode:'serial-location'}};return{pairSeed,stimulusSkeletonId:`structure-${pairSeed}`,calibratedLoad,order,skeleton,trials,matchStats:{structured:{avgStep:stats.step,extent:stats.ext},scrambled:{avgStep:avgStep(scr),extent:extent(scr)}}};},
+ score(spec,response){const serial=spec.target.map((p,i)=>p.r===response[i]?.r&&p.c===response[i]?.c);return{correct:serial.every(Boolean),serialPositionResults:serial,firstErrorPosition:serial.findIndex(x=>!x)+1||null,response};},
+ classifyError(spec,response){return this.score(spec,response).correct?'correct':'serial-position-error';},
+ pairOutcome(records){const a=records.find(r=>r.condition==='scrambled'),b=records.find(r=>r.condition==='structured');return{metric:'correct',delta:(b?.correct?1:0)-(a?.correct?1:0)};},
+ summarize(pairs){const v=pairs.filter(p=>p.valid);if(!v.length)return'No observations yet.';const pos=v.filter(p=>p.pairedOutcome.delta>0).length,neg=v.filter(p=>p.pairedOutcome.delta<0).length;if(pos===neg)return'No clear structure benefit has emerged yet.';return pos>neg?'Structured sequences were retained more often across the matched trials.':'Scrambled sequences were retained more often across the matched trials.';}
+};
