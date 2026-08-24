@@ -1,0 +1,14 @@
+const mem=new Map();global.localStorage={getItem:k=>mem.has(k)?mem.get(k):null,setItem:(k,v)=>mem.set(k,String(v)),removeItem:k=>mem.delete(k)};
+const {storage}=await import('../storage.js');
+const {resumeDecision,PROTOCOLS}=await import('../engine.js');
+const sample={id:'s1',explorationId:'focus',protocolVersion:PROTOCOLS.focus.id,phase:'explore',pairIndex:2,currentPair:{pairIndex:2,nextIndex:1,records:[{trialId:'t1'}]}};
+storage.setActive(sample);
+const loaded=storage.getActive();
+if(JSON.stringify(loaded)!==JSON.stringify(sample))throw new Error('active session round-trip failed');
+if(resumeDecision(loaded)!=='resume')throw new Error('compatible session not resumable');
+loaded.protocolVersion='focus-retrocue-v0';
+if(resumeDecision(loaded)!=='restart')throw new Error('protocol mismatch did not force restart');
+storage.addTrial({trialId:'t1'});storage.addPair({pairId:'p1'});storage.addSession({id:'s1'});
+const exported=storage.exportAll({focus:PROTOCOLS.focus.metadata});
+if(exported.trials.length!==1||exported.pairs.length!==1||exported.sessions.length!==1)throw new Error('history persistence failed');
+console.log(JSON.stringify({ok:true,activeRoundTrip:true,betweenPairState:true,protocolCompatibilityGuard:true,historySeparated:true},null,2));
