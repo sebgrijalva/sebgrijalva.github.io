@@ -1,4 +1,4 @@
-export const BUILD = '4.0.0';
+export const BUILD = '4.1.0';
 export const STORAGE_KEYS = {
   sessions: 'biy_v40_sessions',
   trials: 'biy_v40_trials',
