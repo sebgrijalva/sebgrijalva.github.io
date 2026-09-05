@@ -202,41 +202,6 @@ jobs:
           grep -q 'app-v22.js?v=22' index.html
           grep -q 'v22.css?v=22' index.html
 
-      - name: Build Blind Is You v0.3
-        run: python tools/upgrade_biy_v03.py
-
-      - name: Activate Blind Is You v0.4
-        run: |
-          cat tools/blind-is-you-v04.part00.b64 tools/blind-is-you-v04.part01.b64 tools/blind-is-you-v04.part02.b64 tools/blind-is-you-v04.part03.b64 | base64 --decode | gzip --decompress > blind-is-you/index.html
-          grep -q 'data-version="0.4"' blind-is-you/index.html
-          grep -q "var VERSION='0.4'" blind-is-you/index.html
-          grep -q 'function buildDifficultyTable' blind-is-you/index.html
-          grep -q "calibrationPhase='homing'" blind-is-you/index.html
-
-      - name: Activate Blind Is You v2.0 presentation
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-
-          p = Path('blind-is-you/index.html')
-          text = p.read_text()
-          text = re.sub(r'\s*<meta\s+name=["\']biy-presentation["\'][^>]*>\s*', '\n', text, flags=re.I)
-          text = re.sub(r'\s*<link[^>]+href=["\'](?:\./)?v11\.css(?:\?[^"\']*)?["\'][^>]*>\s*', '\n', text, flags=re.I)
-          text = re.sub(r'\s*<script[^>]+src=["\'](?:\./)?v11\.js(?:\?[^"\']*)?["\'][^>]*>\s*</script>\s*', '\n', text, flags=re.I)
-          text = text.replace('</head>', '  <meta name="biy-presentation" content="2.0">\n  <link rel="stylesheet" href="v11.css?v=2.0.3">\n</head>')
-          text = text.replace('</body>', '  <script src="v11.js?v=2.0.3"></script>\n</body>')
-          p.write_text(text)
-          PY
-          grep -q 'name="biy-presentation" content="2.0"' blind-is-you/index.html
-          grep -q 'v11.css?v=2.0.3' blind-is-you/index.html
-          grep -q 'v11.js?v=2.0.3' blind-is-you/index.html
-          test "$(grep -o 'v11.css' blind-is-you/index.html | wc -l)" -eq 1
-          test "$(grep -o 'v11.js' blind-is-you/index.html | wc -l)" -eq 1
-          grep -q "var VERSION='2.0'" blind-is-you/v11.js
-          grep -q 'installVersionStamp' blind-is-you/v11.js
-          grep -q 'Blind Is You v2.0' blind-is-you/v11.css
-
       - name: Build static site
         run: |
           mkdir -p _site/vendor
@@ -266,14 +231,10 @@ jobs:
           test -s _site/app-v22.js
           test -s _site/v21.css
           test -s _site/v22.css
-          grep -q 'data-version="0.4"' _site/blind-is-you/index.html
-          grep -q "var VERSION='0.4'" _site/blind-is-you/index.html
-          grep -q 'name="biy-presentation" content="2.0"' _site/blind-is-you/index.html
-          grep -q 'v11.css?v=2.0.3' _site/blind-is-you/index.html
-          grep -q 'v11.js?v=2.0.3' _site/blind-is-you/index.html
-          grep -q "var VERSION='2.0'" _site/blind-is-you/v11.js
-          grep -q 'installVersionStamp' _site/blind-is-you/v11.js
-          grep -q 'Blind Is You v2.0' _site/blind-is-you/v11.css
+          grep -q 'data-biy-version="4.1.0"' _site/blind-is-you/index.html
+          test -s _site/blind-is-you/v40/review.js
+          test -s _site/zero-is-you/game-v12.js
+          grep -q 'game-v12.js' _site/zero-is-you/index.html
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

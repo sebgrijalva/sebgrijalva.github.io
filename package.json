@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/platformer-smoke.mjs && node zero-is-you/tests/v7.mjs"
+    "test": "node tests/platformer-smoke.mjs && npm --prefix zero-is-you test && node tests/game-refinement.mjs"
   },
   "devDependencies": {
     "matter-js": "0.20.0"
